@@ -1,0 +1,20 @@
+{
+  "name": "user-auth-board-system",
+  "version": "1.0.0",
+  "description": "JWT 기반 사용자 인증 및 게시판 시스템",
+  "author": "",
+  "license": "ISC",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm start",
+    "install:backend": "cd backend && npm install",
+    "install:all": "npm run install:backend"
+  },
+  "keywords": [
+    "jwt",
+    "authentication",
+    "board",
+    "express",
+    "nodejs"
+  ]
+}
