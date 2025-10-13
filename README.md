@@ -1,6 +1,6 @@
 # 사용자 인증 및 게시판 시스템
 
-Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템과 자유게시판입니다. 회원가입, 로그인, 로그아웃, 회원탈퇴 기능과 게시글 작성, 조회, 수정, 삭제, 댓글, 좋아요 기능을 제공합니다.
+Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템과 자유게시판입니다. 회원가입, 로그인, 로그아웃, 회원탈퇴, 프로필 관리 기능과 게시글 작성, 조회, 수정, 삭제, 댓글, 좋아요 기능을 제공합니다.
 
 ## 기술 스택
 
@@ -42,6 +42,8 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템과 자유�
 │       ├── post-detail.js  # 게시글 상세 로직
 │       ├── post-write.html # 글쓰기/수정 페이지
 │       ├── post-write.js   # 글쓰기/수정 로직
+│       ├── profile.html    # 프로필 페이지
+│       ├── profile.js      # 프로필 로직
 │       └── style.css       # 스타일시트
 ├── package.json            # 루트 패키지 설정
 ├── .gitignore             # Git 제외 파일
@@ -101,18 +103,23 @@ npm start
 | 로그인 | http://localhost:3000/ |
 | 회원가입 | http://localhost:3000/signup.html |
 | 게시판 | http://localhost:3000/board.html |
+| 프로필 | http://localhost:3000/profile.html |
 | 게시글 작성 | http://localhost:3000/post-write.html |
 
 ## API 레퍼런스
 
 ### 인증 API (`/api/auth`)
 
-| 메소드 | 엔드포인트 | 설명 | 요청 본문 |
+| 메소드 | 엔드포인트 | 설명 | 요청 본문/파라미터 |
 |--------|-----------|------|----------|
 | POST | `/signup` | 회원가입 | `{email, password, name}` |
 | POST | `/login` | 로그인 | `{email, password}` |
 | POST | `/logout` | 로그아웃 | - |
 | DELETE | `/delete` | 회원탈퇴 | `{email, password}` |
+| GET | `/profile` | 프로필 조회 | `?userId=1` (쿼리 파라미터) |
+| PUT | `/profile` | 프로필 수정 | `{userId, name?, currentPassword?, newPassword?}` |
+| GET | `/my-posts` | 내가 쓴 글 | `?userId=1` (쿼리 파라미터) |
+| GET | `/my-comments` | 내가 쓴 댓글 | `?userId=1` (쿼리 파라미터) |
 | GET | `/users` | 사용자 목록 (개발용) | - |
 | GET | `/test` | 연결 테스트 | - |
 
@@ -199,6 +206,14 @@ curl -X POST http://localhost:3000/api/board/free/posts \
 - 이메일과 비밀번호 재확인
 - 사용자 데이터 영구 삭제
 - 삭제 전 확인 메시지 표시
+
+#### 프로필 관리
+- 프로필 정보 조회 (이메일, 이름, 가입일)
+- 이름 변경
+- 비밀번호 변경 (현재 비밀번호 확인 필요)
+- 내가 쓴 게시글 목록 조회
+- 내가 쓴 댓글 목록 조회
+- 프로필 페이지에서 회원 탈퇴 가능
 
 ### 게시판 시스템
 

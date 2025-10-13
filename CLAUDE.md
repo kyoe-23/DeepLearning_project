@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Full-stack user authentication and board system with Node.js/Express backend and vanilla JavaScript frontend. JWT-based authentication (signup, login, logout, account deletion) and free board with post CRUD, comments, and likes.
+Full-stack user authentication and board system with Node.js/Express backend and vanilla JavaScript frontend. JWT-based authentication (signup, login, logout, account deletion, profile management) and free board with post CRUD, comments, and likes.
 
 ## Development Commands
 
@@ -47,6 +47,7 @@ curl http://localhost:3000/api/board/free/posts
 - `/` - Login (redirects to board if logged in)
 - `/signup.html` - Signup
 - `/board.html` - Board main page (login required)
+- `/profile.html` - User profile (login required)
 - `/post-detail.html?id=1` - Post detail
 - `/post-write.html` - Create post (`?id=1` for edit mode)
 
@@ -87,12 +88,16 @@ backend/src/
 ## API Endpoints
 
 ### Auth (`/api/auth`)
-| Method | Path | Body | Notes |
+| Method | Path | Body/Params | Notes |
 |--------|------|------|-------|
 | POST | `/signup` | `{email, password, name}` | Email validated, password min 6 chars, returns JWT |
 | POST | `/login` | `{email, password}` | Returns JWT on success |
 | POST | `/logout` | - | Client-side only (JWT is stateless) |
 | DELETE | `/delete` | `{email, password}` | Password re-confirmation required |
+| GET | `/profile` | `?userId=1` | Returns user profile (email, name, createdAt) |
+| PUT | `/profile` | `{userId, name?, currentPassword?, newPassword?}` | Update name and/or password |
+| GET | `/my-posts` | `?userId=1` | Returns all posts by user |
+| GET | `/my-comments` | `?userId=1` | Returns all comments by user with post titles |
 | GET | `/me` | - | Placeholder (needs auth middleware) |
 | GET | `/users` | - | Dev only, returns users without passwords |
 | GET | `/test` | - | Connectivity test |
@@ -123,6 +128,7 @@ backend/src/
 
 ### Validation
 - Uses `express-validator` middleware on all POST/PUT/DELETE routes
+- GET routes with query parameters validate manually in handler
 - Validation errors returned as array in `errors` field
 
 ### View Count Side Effect
@@ -135,6 +141,11 @@ backend/src/
 
 ### Cascade Deletion
 Post deletion removes associated comments and likes ([board.js:223-224](backend/src/routes/board.js#L223-L224))
+
+### Data Sharing Between Modules
+- `board.js` exports `posts` and `comments` arrays for access by `auth.js`
+- `auth.js` dynamically loads board data via `getBoardData()` to avoid circular dependencies
+- Used for profile features: "my posts" and "my comments"
 
 ## Known Issues & Limitations
 
