@@ -77,7 +77,7 @@ JWT_SECRET=your-very-secure-random-string-here-minimum-32-characters
 JWT_EXPIRE=24h
 ```
 
-> ⚠️ **보안 경고**: `JWT_SECRET`을 반드시 안전한 랜덤 문자열(최소 32자)로 변경하세요!
+> **보안 경고**: `JWT_SECRET`을 반드시 안전한 랜덤 문자열(최소 32자)로 변경하세요!
 
 ### 3. 서버 실행
 
@@ -92,7 +92,7 @@ cd backend
 npm start
 ```
 
-✅ 서버가 `http://localhost:3000`에서 실행됩니다.
+서버가 `http://localhost:3000`에서 실행됩니다.
 
 ### 4. 브라우저에서 접속
 
@@ -117,7 +117,7 @@ npm start
 | GET | `/test` | 연결 테스트 | - |
 
 <details>
-<summary>📝 회원가입 예제</summary>
+<summary>회원가입 예제</summary>
 
 ```bash
 curl -X POST http://localhost:3000/api/auth/signup \
@@ -156,7 +156,7 @@ curl -X POST http://localhost:3000/api/auth/signup \
 | DELETE | `/posts/:postId/comments/:commentId` | 댓글 삭제 | `{authorId}` |
 
 <details>
-<summary>📝 게시글 작성 예제</summary>
+<summary>게시글 작성 예제</summary>
 
 ```bash
 curl -X POST http://localhost:3000/api/board/free/posts \
@@ -247,7 +247,7 @@ sequenceDiagram
 
 ### 보안 기능
 
-✅ **구현됨**:
+**구현됨**:
 - 비밀번호 bcrypt 해싱 (10 salt rounds)
 - JWT 토큰 발급
 - 입력값 검증 (express-validator)
@@ -262,7 +262,7 @@ sequenceDiagram
 
 ## 알려진 제한사항
 
-> ⚠️ **이 프로젝트는 학습/프로토타입 목적입니다. 프로덕션 환경에 배포하지 마세요.**
+>**이 프로젝트는 학습/프로토타입 목적입니다. 프로덕션 환경에 배포하지 마세요.**
 
 ### 중요한 제한사항
 
