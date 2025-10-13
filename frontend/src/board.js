@@ -7,6 +7,7 @@ const emptyState = document.getElementById('empty-state');
 const postTable = document.getElementById('post-table');
 const messageBox = document.getElementById('message-box');
 const userNameSpan = document.getElementById('user-name');
+const profileButton = document.getElementById('profile-button');
 const logoutButton = document.getElementById('logout-button');
 const writeButton = document.getElementById('write-button');
 const refreshButton = document.getElementById('refresh-button');
@@ -133,7 +134,13 @@ function goToWritePage() {
     window.location.href = '/post-write.html';
 }
 
+// 프로필 페이지로 이동
+function goToProfilePage() {
+    window.location.href = '/profile.html';
+}
+
 // 이벤트 리스너
+profileButton.addEventListener('click', goToProfilePage);
 logoutButton.addEventListener('click', logout);
 writeButton.addEventListener('click', goToWritePage);
 refreshButton.addEventListener('click', loadPosts);

@@ -412,4 +412,7 @@ router.delete('/free/posts/:postId/comments/:commentId', [
   }
 });
 
+// 다른 모듈에서 사용할 수 있도록 데이터 export
 module.exports = router;
+module.exports.posts = posts;
+module.exports.comments = comments;

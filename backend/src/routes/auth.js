@@ -5,6 +5,15 @@ const { body, validationResult } = require('express-validator');
 
 const router = express.Router();
 
+// board 데이터 접근을 위한 참조 (순환 참조 방지를 위해 동적 로드)
+let boardData = null;
+const getBoardData = () => {
+  if (!boardData) {
+    boardData = require('./board');
+  }
+  return boardData;
+};
+
 // 임시 사용자 저장소 (나중에 데이터베이스로 교체)
 let users = [];
 
@@ -168,6 +177,111 @@ router.get('/me', (req, res) => {
   });
 });
 
+// 프로필 조회 (GET /api/auth/profile?userId=1)
+router.get('/profile', (req, res) => {
+  try {
+    const userId = req.query.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: '사용자 정보가 필요합니다'
+      });
+    }
+
+    const user = users.find(u => u.id === parseInt(userId));
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '사용자를 찾을 수 없습니다'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('프로필 조회 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다'
+    });
+  }
+});
+
+// 프로필 수정 (PUT /api/auth/profile)
+router.put('/profile', [
+  body('userId').notEmpty().withMessage('사용자 정보가 필요합니다'),
+  body('name').optional().notEmpty().withMessage('이름은 비어있을 수 없습니다'),
+  body('currentPassword').optional().notEmpty().withMessage('현재 비밀번호를 입력해주세요'),
+  body('newPassword').optional().isLength({ min: 6 }).withMessage('새 비밀번호는 최소 6자 이상이어야 합니다')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: '입력값 오류',
+        errors: errors.array()
+      });
+    }
+
+    const { userId, name, currentPassword, newPassword } = req.body;
+
+    const userIndex = users.findIndex(u => u.id === parseInt(userId));
+    if (userIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: '사용자를 찾을 수 없습니다'
+      });
+    }
+
+    const user = users[userIndex];
+
+    // 비밀번호 변경 요청이 있는 경우
+    if (currentPassword && newPassword) {
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
+        return res.status(400).json({
+          success: false,
+          message: '현재 비밀번호가 올바르지 않습니다'
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      users[userIndex].password = hashedPassword;
+    }
+
+    // 이름 변경
+    if (name) {
+      users[userIndex].name = name;
+    }
+
+    res.json({
+      success: true,
+      message: '프로필이 수정되었습니다',
+      data: {
+        id: users[userIndex].id,
+        email: users[userIndex].email,
+        name: users[userIndex].name,
+        createdAt: users[userIndex].createdAt
+      }
+    });
+  } catch (error) {
+    console.error('프로필 수정 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다'
+    });
+  }
+});
+
 // 디버깅용: 현재 저장된 사용자 목록 (개발 중에만 사용)
 router.get('/users', (req, res) => {
   res.json({
@@ -245,6 +359,90 @@ router.delete('/delete', [
   }
 });
 
+// 내가 쓴 글 조회 (GET /api/auth/my-posts?userId=1)
+router.get('/my-posts', (req, res) => {
+  try {
+    const userId = req.query.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: '사용자 정보가 필요합니다'
+      });
+    }
+
+    const board = getBoardData();
+
+    // 사용자가 작성한 게시글 필터링
+    const userPosts = board.posts.filter(post => post.authorId === parseInt(userId));
+
+    // 최신순으로 정렬
+    const sortedPosts = userPosts.sort((a, b) =>
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    res.json({
+      success: true,
+      data: sortedPosts
+    });
+  } catch (error) {
+    console.error('내가 쓴 글 조회 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다'
+    });
+  }
+});
+
+// 내가 쓴 댓글 조회 (GET /api/auth/my-comments?userId=1)
+router.get('/my-comments', (req, res) => {
+  try {
+    const userId = req.query.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: '사용자 정보가 필요합니다'
+      });
+    }
+
+    const board = getBoardData();
+
+    // 모든 댓글에서 사용자가 작성한 댓글 찾기
+    const userComments = [];
+    Object.keys(board.comments).forEach(postId => {
+      const postComments = board.comments[postId].filter(
+        comment => comment.authorId === parseInt(userId)
+      );
+
+      // 게시글 정보 추가
+      postComments.forEach(comment => {
+        const post = board.posts.find(p => p.id === parseInt(postId));
+        userComments.push({
+          ...comment,
+          postTitle: post ? post.title : '(삭제된 게시글)'
+        });
+      });
+    });
+
+    // 최신순으로 정렬
+    const sortedComments = userComments.sort((a, b) =>
+      new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    res.json({
+      success: true,
+      data: sortedComments
+    });
+  } catch (error) {
+    console.error('내가 쓴 댓글 조회 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다'
+    });
+  }
+});
+
 // 브라우저 테스트용: Auth 라우터 연결 확인
 router.get('/test', (req, res) => {
   res.json({
@@ -261,7 +459,11 @@ router.get('/test', (req, res) => {
           'POST /api/auth/signup (회원가입)',
           'POST /api/auth/login (로그인)',
           'POST /api/auth/logout (로그아웃)',
-          'DELETE /api/auth/delete (회원탈퇴)'
+          'DELETE /api/auth/delete (회원탈퇴)',
+          'GET /api/auth/profile (프로필 조회)',
+          'PUT /api/auth/profile (프로필 수정)',
+          'GET /api/auth/my-posts (내가 쓴 글)',
+          'GET /api/auth/my-comments (내가 쓴 댓글)'
         ]
       }
     },

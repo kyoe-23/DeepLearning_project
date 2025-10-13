@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필 - 자유게시판</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .profile-header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .profile-header h2 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .profile-info {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .profile-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .profile-value {
+            color: #333;
+        }
+
+        .profile-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .profile-section h3 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 20px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #888;
+            font-size: 12px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .activity-item:hover {
+            background: #f9f9f9;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .activity-content {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .activity-meta {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #4CAF50;
+        }
+
+        .tab.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .danger-zone {
+            border: 2px solid #f44336;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .danger-zone h4 {
+            color: #f44336;
+            margin: 0 0 10px 0;
+        }
+
+        .danger-zone p {
+            color: #666;
+            margin: 0 0 15px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <h1><a href="/board.html">자유게시판</a></h1>
+            <div class="nav-right">
+                <span id="user-name"></span>
+                <button id="profile-button" class="btn-nav">프로필</button>
+                <button id="board-button" class="btn-nav">게시판</button>
+                <button id="logout-button" class="btn-nav">로그아웃</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="profile-container">
+        <div id="message-box" class="message"></div>
+
+        <div class="profile-header">
+            <h2>프로필</h2>
+            <div class="profile-info">
+                <div class="profile-label">이메일</div>
+                <div class="profile-value" id="profile-email">-</div>
+
+                <div class="profile-label">이름</div>
+                <div class="profile-value" id="profile-name">-</div>
+
+                <div class="profile-label">가입일</div>
+                <div class="profile-value" id="profile-created">-</div>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h3>프로필 수정</h3>
+
+            <form id="profile-form">
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" id="edit-name" placeholder="새로운 이름">
+                </div>
+
+                <div class="form-group">
+                    <label>현재 비밀번호</label>
+                    <input type="password" id="current-password" placeholder="비밀번호를 변경하려면 입력하세요">
+                    <small>비밀번호를 변경하지 않으려면 비워두세요</small>
+                </div>
+
+                <div class="form-group">
+                    <label>새 비밀번호</label>
+                    <input type="password" id="new-password" placeholder="새로운 비밀번호 (최소 6자)">
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">저장</button>
+                    <button type="button" id="cancel-edit" class="btn btn-secondary">취소</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="profile-section">
+            <h3>내 활동</h3>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="posts">내가 쓴 글</button>
+                <button class="tab" data-tab="comments">내가 쓴 댓글</button>
+            </div>
+
+            <div id="posts-content" class="tab-content active">
+                <ul id="my-posts-list" class="activity-list"></ul>
+                <div id="posts-empty" class="empty-state" style="display: none;">
+                    작성한 게시글이 없습니다.
+                </div>
+            </div>
+
+            <div id="comments-content" class="tab-content">
+                <ul id="my-comments-list" class="activity-list"></ul>
+                <div id="comments-empty" class="empty-state" style="display: none;">
+                    작성한 댓글이 없습니다.
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <div class="danger-zone">
+                <h4>위험 영역</h4>
+                <p>계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.</p>
+                <button id="delete-account-btn" class="btn btn-danger">회원 탈퇴</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="profile.js"></script>
+</body>
+</html>
