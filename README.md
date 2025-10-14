@@ -488,6 +488,3 @@ curl -X POST http://localhost:3000/api/auth/signup \
 
 ISC License - 자유롭게 사용, 수정, 배포 가능합니다.
 
-## 문의 및 지원
-
-프로젝트 관련 문의사항이나 버그 리포트는 [GitHub Issues](../../issues)에 등록해주세요.
