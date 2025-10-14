@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Full-stack user authentication and board system with Node.js/Express backend and vanilla JavaScript frontend. JWT-based authentication (signup, login, logout, account deletion, profile management) and free board with post CRUD, comments, and likes.
+Full-stack user authentication, board system, and AI skin analysis with Node.js/Express backend and vanilla JavaScript frontend. JWT-based authentication with middleware (signup, login, logout, account deletion, profile management), free board with post CRUD, comments, likes, search, and AI-powered skin analysis with image upload and surveys.
 
 ## Development Commands
 
@@ -48,6 +48,8 @@ curl http://localhost:3000/api/board/free/posts
 - `/signup.html` - Signup
 - `/board.html` - Board main page (login required)
 - `/profile.html` - User profile (login required)
+- `/ai-analysis.html` - AI skin analysis (login required)
+- `/ai-result.html?id=1` - AI analysis result (login required)
 - `/post-detail.html?id=1` - Post detail
 - `/post-write.html` - Create post (`?id=1` for edit mode)
 
@@ -57,19 +59,25 @@ curl http://localhost:3000/api/board/free/posts
 ```
 backend/src/
 ├── server.js          # Express entry point, serves frontend/src/ as static files
+├── middleware/
+│   ├── auth.js       # JWT authentication middleware
+│   └── rateLimiter.js # Rate limiting middleware
 ├── routes/
 │   ├── auth.js       # Auth endpoints: /api/auth/*
-│   └── board.js      # Board endpoints: /api/board/*
+│   ├── board.js      # Board endpoints: /api/board/*
+│   └── ai.js         # AI analysis endpoints: /api/ai/*
+└── uploads/          # Uploaded images storage
 ```
 
 **Critical**: `dotenv` must be loaded FIRST in [server.js:1-3](backend/src/server.js#L1-L3) before any other imports, otherwise JWT_SECRET won't be available.
 
 ### Authentication Flow
-1. **In-memory storage**: `users` array in [auth.js:9](backend/src/routes/auth.js#L9) - data clears on server restart
-2. **Password hashing**: bcryptjs with 10 salt rounds ([auth.js:50-51](backend/src/routes/auth.js#L50-L51))
-3. **JWT generation**: Uses `JWT_SECRET` and `JWT_EXPIRE` from `backend/.env` ([auth.js:12-18](backend/src/routes/auth.js#L12-L18))
+1. **In-memory storage**: `users` array in [auth.js](backend/src/routes/auth.js) - data clears on server restart
+2. **Password hashing**: bcryptjs with 10 salt rounds
+3. **JWT generation**: Uses `JWT_SECRET` and `JWT_EXPIRE` from `backend/.env`
 4. **Token storage**: Browser localStorage (`token` and `user` keys)
-5. **⚠️ Missing**: JWT auth middleware not implemented yet ([auth.js:164](backend/src/routes/auth.js#L164)) - all board endpoints unprotected
+5. **JWT Middleware**: Implemented in [middleware/auth.js](backend/src/middleware/auth.js) - protects board and AI endpoints
+6. **Rate Limiting**: Implemented in [middleware/rateLimiter.js](backend/src/middleware/rateLimiter.js)
 
 ### Board System Architecture
 **Data structures** (all in-memory):
@@ -77,7 +85,20 @@ backend/src/
 - Comments: Object mapping `{postId: [comments]}` ([board.js:11](backend/src/routes/board.js#L11))
 - Likes: Object mapping `{postId: Set(userIds)}` ([board.js:14](backend/src/routes/board.js#L14))
 
-**Authorization**: Request body `authorId` compared against stored data - no JWT verification yet
+**Authorization**: JWT-based authentication via middleware - `req.user.userId` extracted from token
+
+### AI Analysis System Architecture
+**Data structures** (all in-memory):
+- Survey Questions: Array in [ai.js](backend/src/routes/ai.js) - dynamic management (CRUD)
+- Surveys: Array storing submitted surveys
+- Analyses: Array storing AI analysis results
+- Images: Stored in `backend/uploads/` folder
+
+**Flow**:
+1. User uploads image (multer middleware)
+2. User completes survey based on dynamic questions
+3. AI analysis generated (currently rule-based, ready for real AI model integration)
+4. Results stored and displayed with visual charts
 
 ### Frontend Architecture
 - **Vanilla JS** - No framework, uses Fetch API for all requests
@@ -116,6 +137,18 @@ backend/src/
 
 **Response format**: All endpoints return `{success: boolean, message: string, data?: any, errors?: array}`
 
+### AI Analysis (`/api/ai`)
+| Method | Path | Body/Params | Auth | Notes |
+|--------|------|------|------|-------|
+| POST | `/image-upload` | `multipart/form-data (image)` | Required | Max 5MB, JPG/PNG only |
+| POST | `/survey` | `{imageFilename, answers}` | Required | Triggers AI analysis |
+| GET | `/survey/questions` | - | Optional | Returns dynamic question list |
+| POST | `/survey/questions` | `{question, type, options, required}` | Required | Admin: add question |
+| PUT | `/survey/questions/:id` | `{question?, type?, options?, required?}` | Required | Admin: update question |
+| DELETE | `/survey/questions/:id` | - | Required | Admin: delete question |
+| GET | `/analysis/:id` | - | Required | Own analysis only |
+| GET | `/my-analyses` | - | Required | User's analysis history |
+
 ## Environment Setup
 
 **Required in `backend/.env`** (create manually):
@@ -147,11 +180,27 @@ Post deletion removes associated comments and likes ([board.js:223-224](backend/
 - `auth.js` dynamically loads board data via `getBoardData()` to avoid circular dependencies
 - Used for profile features: "my posts" and "my comments"
 
+### Security Features
+- **JWT Authentication**: All Board and AI endpoints protected via `authenticateToken` middleware
+- **Rate Limiting**:
+  - General API: 100 requests/minute
+  - Auth endpoints (login/signup): 5 requests/15 minutes
+  - Post creation: 3 requests/minute
+- **File Upload**:
+  - Max size: 5MB
+  - Allowed types: JPG, PNG only
+  - Stored in `backend/uploads/`
+
+### Search Feature
+- Board posts searchable by title, content, and author name
+- Case-insensitive search
+- GET `/api/board/free/posts?search=keyword`
+
 ## Known Issues & Limitations
 
-1. **No JWT verification** - Board endpoints check `authorId` in request body, easily spoofed
-2. **In-memory storage** - All data lost on server restart
-3. **ID collision risk** - User/comment IDs reuse after deletion
-4. **No pagination** - All posts/comments fetched at once
-5. **Duplicate like prevention** - Uses Set but no user verification
-6. **No rate limiting** - Vulnerable to abuse
+1. **In-memory storage** - All data lost on server restart (users, posts, surveys, analyses)
+2. **ID collision risk** - User/comment IDs reuse after deletion
+3. **No pagination** - All posts/comments fetched at once
+4. **AI Analysis** - Currently rule-based, ready for real AI model integration
+5. **No admin role** - Survey question management lacks role-based access control
+6. **File storage** - Images stored locally, not cloud storage

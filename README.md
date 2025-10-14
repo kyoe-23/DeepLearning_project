@@ -1,6 +1,6 @@
-# 사용자 인증 및 게시판 시스템
+# 사용자 인증 및 게시판 시스템 with AI 피부 분석
 
-Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템과 자유게시판입니다. 회원가입, 로그인, 로그아웃, 회원탈퇴, 프로필 관리 기능과 게시글 작성, 조회, 수정, 삭제, 댓글, 좋아요 기능을 제공합니다.
+Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 자유게시판, AI 피부 분석 서비스입니다. 회원가입, 로그인, 로그아웃, 회원탈퇴, 프로필 관리 기능과 게시글 작성, 조회, 수정, 삭제, 댓글, 좋아요 기능, 그리고 이미지 기반 AI 피부 분석 기능을 제공합니다.
 
 ## 기술 스택
 
@@ -10,6 +10,8 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템과 자유�
 - **bcryptjs** - 비밀번호 해싱
 - **jsonwebtoken** - JWT 토큰 생성 및 검증
 - **express-validator** - 입력값 검증
+- **express-rate-limit** - Rate limiting
+- **multer** - 파일 업로드
 - **dotenv** - 환경 변수 관리
 
 ### 프론트엔드
@@ -25,8 +27,13 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템과 자유�
 │   ├── src/                # 백엔드 소스 코드
 │   │   ├── routes/         # API 라우트
 │   │   │   ├── auth.js     # 인증 관련 엔드포인트
-│   │   │   └── board.js    # 게시판 관련 엔드포인트
+│   │   │   ├── board.js    # 게시판 관련 엔드포인트
+│   │   │   └── ai.js       # AI 분석 관련 엔드포인트
+│   │   ├── middleware/     # 미들웨어
+│   │   │   ├── auth.js     # JWT 인증 미들웨어
+│   │   │   └── rateLimiter.js # Rate Limiting 미들웨어
 │   │   └── server.js       # 서버 진입점
+│   ├── uploads/            # 업로드된 이미지 저장소
 │   ├── .env                # 환경 변수 (git 제외)
 │   ├── package.json        # 백엔드 의존성
 │   └── node_modules/       # 백엔드 패키지
@@ -44,6 +51,10 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템과 자유�
 │       ├── post-write.js   # 글쓰기/수정 로직
 │       ├── profile.html    # 프로필 페이지
 │       ├── profile.js      # 프로필 로직
+│       ├── ai-analysis.html# AI 피부 분석 페이지
+│       ├── ai-analysis.js  # AI 분석 로직
+│       ├── ai-result.html  # AI 분석 결과 페이지
+│       ├── ai-result.js    # AI 결과 로직
 │       └── style.css       # 스타일시트
 ├── package.json            # 루트 패키지 설정
 ├── .gitignore             # Git 제외 파일
@@ -112,6 +123,7 @@ npm start
 | 회원가입 | http://localhost:3000/signup.html |
 | 게시판 | http://localhost:3000/board.html |
 | 프로필 | http://localhost:3000/profile.html |
+| AI 피부 분석 | http://localhost:3000/ai-analysis.html |
 | 게시글 작성 | http://localhost:3000/post-write.html |
 
 ## API 레퍼런스
@@ -187,6 +199,47 @@ curl -X POST http://localhost:3000/api/board/free/posts \
 
 **모든 API 응답 형식**: `{success: boolean, message: string, data?: object, errors?: array}`
 
+### AI 분석 API (`/api/ai`)
+
+| 메소드 | 엔드포인트 | 설명 | 요청 본문/파라미터 | 인증 |
+|--------|-----------|------|----------|------|
+| POST | `/image-upload` | 이미지 업로드 | `multipart/form-data (image)` | 필수 |
+| POST | `/survey` | 설문지 제출 | `{imageFilename, answers}` | 필수 |
+| GET | `/survey/questions` | 설문지 질문 목록 | - | 불필요 |
+| POST | `/survey/questions` | 설문지 질문 추가 (관리자) | `{question, type, options, required}` | 필수 |
+| PUT | `/survey/questions/:id` | 설문지 질문 수정 (관리자) | `{question?, type?, options?, required?}` | 필수 |
+| DELETE | `/survey/questions/:id` | 설문지 질문 삭제 (관리자) | - | 필수 |
+| GET | `/analysis/:id` | 분석 결과 조회 | - | 필수 |
+| GET | `/my-analyses` | 내 분석 결과 목록 | - | 필수 |
+
+<details>
+<summary>AI 분석 flow 예제</summary>
+
+1. 이미지 업로드
+```bash
+curl -X POST http://localhost:3000/api/ai/image-upload \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "image=@face.jpg"
+```
+
+2. 설문지 제출 및 분석
+```bash
+curl -X POST http://localhost:3000/api/ai/survey \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "imageFilename": "skin-1234567890.jpg",
+    "answers": ["건성", ["여드름", "모공"], "6-8시간", "1L-2L", "토너, 로션"]
+  }'
+```
+
+3. 분석 결과 조회
+```bash
+curl http://localhost:3000/api/ai/analysis/1 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+</details>
+
 ## 주요 기능
 
 ### 인증 시스템
@@ -242,6 +295,48 @@ curl -X POST http://localhost:3000/api/board/free/posts \
 - 댓글 작성 (로그인 사용자)
 - 댓글 삭제 (작성자만 가능)
 - 댓글 수 실시간 표시
+
+### AI 피부 분석 시스템
+
+#### 이미지 업로드
+- 얼굴 사진 업로드 (JPG, PNG, 최대 5MB)
+- 드래그 앤 드롭 지원
+- 이미지 미리보기 기능
+
+#### 설문 조사
+- 동적 설문지 시스템 (질문 추가/수정/삭제 가능)
+- 피부 타입, 생활 습관, 스킨케어 루틴 등
+- 라디오, 체크박스, 텍스트 입력 지원
+
+#### AI 분석
+- 이미지 + 설문 데이터 기반 분석
+- 피부 상태 종합 점수 (100점 만점)
+- 수분, 탄력, 모공, 색소침착 상세 분석
+- 맞춤형 추천 사항 제공
+
+#### 분석 결과 관리
+- 분석 결과 저장 및 조회
+- 내 분석 기록 조회
+- 시각적 결과 표시 (차트, 점수)
+
+### 보안 기능
+
+#### 구현됨
+- JWT 인증 미들웨어
+- 모든 Board API 및 AI API 인증 적용
+- Rate Limiting (API 남용 방지)
+  - 일반 API: 분당 100회
+  - 인증 API: 15분당 5회
+  - 게시글 작성: 분당 3회
+- 비밀번호 bcrypt 해싱 (10 salt rounds)
+- 입력값 검증 (express-validator)
+- 중복 이메일 체크
+- 에러 메시지 일반화 (로그인 실패 시)
+
+#### 미구현 (향후 개선 필요)
+- CORS 설정
+- HTTPS 지원
+- 파일 업로드 악성코드 검사
 
 ## 시스템 동작 방식
 
@@ -313,22 +408,25 @@ sequenceDiagram
 
 ### 개선 로드맵
 
-**Phase 1: 보안 강화**
-- [ ] JWT 인증 미들웨어 구현
-- [ ] 모든 Board API에 인증 적용
-- [ ] Rate limiting 추가
+**Phase 1: 보안 강화** (완료)
+- [x] JWT 인증 미들웨어 구현
+- [x] 모든 Board API에 인증 적용
+- [x] Rate limiting 추가
 
 **Phase 2: 데이터베이스 연동**
 - [ ] MongoDB/PostgreSQL 연동
 - [ ] 데이터 영속성 확보
 - [ ] 인덱싱 추가
 
-**Phase 3: 기능 확장**
-- [ ] 게시글 검색 & 페이지네이션
-- [ ] 이미지 업로드
-- [ ] 카테고리 분류
+**Phase 3: 기능 확장** (일부 완료)
+- [x] 게시글 검색
+- [x] 이미지 업로드 (AI 분석용)
+- [x] AI 피부 분석 시스템
+- [ ] 게시글 페이지네이션
+- [ ] 게시판 카테고리 분류
 - [ ] 비밀번호 재설정
 - [ ] 이메일 인증
+- [ ] 실제 AI 모델 통합 (현재는 규칙 기반)
 
 **Phase 4: 프로덕션 준비**
 - [ ] HTTPS & CORS 설정
