@@ -350,7 +350,7 @@ sequenceDiagram
 
     User->>Frontend: 회원가입/로그인
     Frontend->>Backend: POST /api/auth/signup or /login
-    Backend->>Backend: 비밀번호 해싱  & JWT 생성
+    Backend->>Backend: 비밀번호 해싱 & JWT 생성
     Backend->>Frontend: {user, token}
     Frontend->>LocalStorage: token & user 저장
     Frontend->>User: 게시판으로 리다이렉트
@@ -418,19 +418,25 @@ sequenceDiagram
 ### 중요한 제한사항
 
 1. **인메모리 데이터 저장**
-   - 모든 데이터(사용자, 게시글, 댓글, 좋아요, AI 분석 결과)가 메모리에 저장됨
+   - 모든 데이터(사용자, 게시글, 댓글, 좋아요)가 메모리에 저장됨
    - 서버 재시작 시 모든 데이터 손실
    - 데이터베이스 미사용
 
-2. **성능 이슈**
-   - 게시글 페이지네이션 없음 (모든 게시글 한번에 로드)
+2. **인증/인가 미구현**
+   - JWT 검증 미들웨어 없음
+   - 게시판 API가 인증 없이 접근 가능
+   - `authorId`를 요청 본문으로 받아 쉽게 위조 가능
+
+3. **성능 이슈**
+   - 페이지네이션 없음 (모든 게시글 한번에 로드)
+   - 검색 기능 없음
    - 인덱싱 없음
 
-3. **기타 제한사항**
+4. **기타 제한사항**
+   - 파일/이미지 업로드 불가
+   - Rate limiting 없음
    - CORS 미설정
    - HTTPS 미지원
-   - AI 분석은 규칙 기반 (실제 AI 모델 미통합)
-   - 파일 업로드 악성코드 검사 없음
    - 에러 핸들링 기본 수준
 
 ### 개선 로드맵
