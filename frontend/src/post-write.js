@@ -104,9 +104,13 @@ function goToBoard() {
 // 게시글 작성
 async function createPost(title, content) {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/free/posts`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
                 title,
                 content,
@@ -138,9 +142,13 @@ async function createPost(title, content) {
 // 게시글 수정
 async function updatePost(title, content) {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/free/posts/${editPostId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
                 title,
                 content,

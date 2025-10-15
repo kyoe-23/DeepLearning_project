@@ -159,9 +159,13 @@ async function likePost() {
     const postId = getPostId();
 
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/free/posts/${postId}/like`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({ userId: currentUser.id })
         });
 
@@ -194,9 +198,13 @@ async function submitComment() {
     const postId = getPostId();
 
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/free/posts/${postId}/comments`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
                 content,
                 authorId: currentUser.id,
@@ -228,9 +236,13 @@ async function deleteComment(commentId) {
     const postId = getPostId();
 
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/free/posts/${postId}/comments/${commentId}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({ authorId: currentUser.id })
         });
 
@@ -262,9 +274,13 @@ async function deletePost() {
     const postId = getPostId();
 
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/free/posts/${postId}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({ authorId: currentUser.id })
         });
 
