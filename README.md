@@ -356,10 +356,38 @@ sequenceDiagram
     Frontend->>User: 게시판으로 리다이렉트
 ```
 
+### 인증이 필요한 API 호출 흐름
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant LocalStorage
+    participant AuthMiddleware
+
+    Note over User,AuthMiddleware: 게시글 작성/좋아요/댓글 예시
+
+    User->>Frontend: 게시글 작성/좋아요/댓글 작성
+    Frontend->>LocalStorage: token 조회
+    LocalStorage-->>Frontend: JWT token
+    Frontend->>Backend: API 요청 + Authorization: Bearer {token}
+    Backend->>AuthMiddleware: JWT 검증
+
+    alt 토큰 유효
+        AuthMiddleware->>Backend: req.user 설정 (userId 포함)
+        Backend->>Backend: 비즈니스 로직 실행
+        Backend-->>Frontend: {success: true, data}
+        Frontend-->>User: 성공 메시지 표시
+    else 토큰 없음/만료/유효하지 않음
+        AuthMiddleware-->>Frontend: {success: false, message: "인증 토큰이 필요합니다"}
+        Frontend-->>User: 에러 메시지 표시
+    end
+```
+
 ### 게시판 동작
 1. 게시글 목록은 최신순 정렬
 2. 게시글 조회 시 조회수 자동 증가
-3. 작성자 확인은 `authorId` 비교로 수행 (⚠️ JWT 검증 미구현)
+3. 작성자 확인은 JWT에서 추출한 `userId`로 수행 (✅ 구현됨)
 4. 좋아요는 사용자당 1회 제한 (Set 자료구조 사용)
 5. 게시글 삭제 시 댓글/좋아요도 함께 삭제
 
@@ -367,16 +395,21 @@ sequenceDiagram
 
 **구현됨**:
 - 비밀번호 bcrypt 해싱 (10 salt rounds)
-- JWT 토큰 발급
+- JWT 토큰 발급 및 검증
+- JWT 인증 미들웨어 (`backend/src/middleware/auth.js`)
+- 모든 Board API 및 AI API 인증 적용
+- Rate Limiting (API 남용 방지)
+  - 일반 API: 분당 100회
+  - 인증 API (login/signup): 15분당 5회
+  - 게시글 작성: 분당 3회
 - 입력값 검증 (express-validator)
 - 중복 이메일 체크
 - 에러 메시지 일반화 (로그인 실패 시)
 
-⚠️ **미구현** (보안 취약):
-- JWT 토큰 검증 미들웨어
-- API 엔드포인트 인증 체크
-- Rate limiting
+⚠️ **미구현** (향후 개선 필요):
 - CORS 설정
+- HTTPS 지원
+- 파일 업로드 악성코드 검사
 
 ## 알려진 제한사항
 
@@ -385,25 +418,19 @@ sequenceDiagram
 ### 중요한 제한사항
 
 1. **인메모리 데이터 저장**
-   - 모든 데이터(사용자, 게시글, 댓글, 좋아요)가 메모리에 저장됨
+   - 모든 데이터(사용자, 게시글, 댓글, 좋아요, AI 분석 결과)가 메모리에 저장됨
    - 서버 재시작 시 모든 데이터 손실
    - 데이터베이스 미사용
 
-2. **인증/인가 미구현**
-   - JWT 검증 미들웨어 없음
-   - 게시판 API가 인증 없이 접근 가능
-   - `authorId`를 요청 본문으로 받아 쉽게 위조 가능
-
-3. **성능 이슈**
-   - 페이지네이션 없음 (모든 게시글 한번에 로드)
-   - 검색 기능 없음
+2. **성능 이슈**
+   - 게시글 페이지네이션 없음 (모든 게시글 한번에 로드)
    - 인덱싱 없음
 
-4. **기타 제한사항**
-   - 파일/이미지 업로드 불가
-   - Rate limiting 없음
+3. **기타 제한사항**
    - CORS 미설정
    - HTTPS 미지원
+   - AI 분석은 규칙 기반 (실제 AI 모델 미통합)
+   - 파일 업로드 악성코드 검사 없음
    - 에러 핸들링 기본 수준
 
 ### 개선 로드맵
