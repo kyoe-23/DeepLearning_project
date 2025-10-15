@@ -350,7 +350,7 @@ sequenceDiagram
 
     User->>Frontend: 회원가입/로그인
     Frontend->>Backend: POST /api/auth/signup or /login
-    Backend->>Backend: 비밀번호 해싱 & JWT 생성
+    Backend->>Backend: 비밀번호 해싱  & JWT 생성
     Backend->>Frontend: {user, token}
     Frontend->>LocalStorage: token & user 저장
     Frontend->>User: 게시판으로 리다이렉트
