@@ -3,116 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로필 - 자유게시판</title>
+    <title>프로필 - SkinAI</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        body {
+            background-color: #fafafa;
+        }
+
         .profile-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 40px auto;
             padding: 0 20px;
         }
 
-        .profile-header {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        /* 프로필 헤더 */
+        .profile-header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 40px;
             margin-bottom: 30px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
 
-        .profile-header h2 {
-            margin: 0 0 20px 0;
+        .profile-header-content {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            justify-content: space-between;
+        }
+
+        .profile-header-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .profile-header-info h1 {
+            margin: 0 0 8px 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .profile-header-info p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .btn-logout {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-logout:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        /* 탭 네비게이션 */
+        .profile-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .profile-tab {
+            flex: 1;
+            padding: 14px 24px;
+            background: none;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-tab:hover {
+            background: #f5f5f5;
             color: #333;
-            font-size: 24px;
         }
 
-        .profile-info {
-            display: grid;
-            grid-template-columns: 120px 1fr;
-            gap: 15px;
+        .profile-tab.active {
+            background: #333;
+            color: white;
+        }
+
+        /* 탭 컨텐츠 */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 프로필 정보 카드 */
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
             margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
-        .profile-label {
+        .info-card h3 {
+            margin: 0 0 24px 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 20px;
+        }
+
+        .info-label {
             font-weight: 600;
             color: #666;
         }
 
-        .profile-value {
+        .info-value {
             color: #333;
         }
 
-        .profile-section {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .profile-section h3 {
-            margin: 0 0 20px 0;
-            color: #333;
-            font-size: 20px;
-            border-bottom: 2px solid #4CAF50;
-            padding-bottom: 10px;
-        }
-
+        /* 폼 스타일 */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #555;
+            color: #333;
+            font-size: 14px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
+            border-radius: 8px;
+            font-size: 15px;
             box-sizing: border-box;
+            transition: border-color 0.2s;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #4CAF50;
+            border-color: #667eea;
         }
 
-        .form-group small {
-            display: block;
-            margin-top: 5px;
-            color: #888;
-            font-size: 12px;
+        .form-hint {
+            font-size: 13px;
+            color: #999;
+            margin-top: 6px;
         }
 
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
+        /* 버튼 */
         .btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
 
         .btn-primary {
-            background: #4CAF50;
+            background: #667eea;
             color: white;
         }
 
         .btn-primary:hover {
-            background: #45a049;
+            background: #5568d3;
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
@@ -133,198 +231,276 @@
             background: #da190b;
         }
 
-        .activity-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* 활동 내역 */
+        .activity-grid {
+            display: grid;
+            gap: 16px;
         }
 
         .activity-item {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
         .activity-item:hover {
-            background: #f9f9f9;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
+            background: #f0f0f0;
+            transform: translateX(4px);
         }
 
         .activity-title {
             font-weight: 600;
             color: #333;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
         }
 
         .activity-content {
             color: #666;
             font-size: 14px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .activity-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
             color: #999;
-            font-size: 12px;
+        }
+
+        .activity-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .empty-state {
             text-align: center;
-            padding: 40px;
+            padding: 60px 20px;
             color: #999;
         }
 
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
         }
 
-        .tab {
-            padding: 12px 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            color: #666;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
-            transition: all 0.3s;
-        }
-
-        .tab:hover {
-            color: #4CAF50;
-        }
-
-        .tab.active {
-            color: #4CAF50;
-            border-bottom-color: #4CAF50;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .danger-zone {
-            border: 2px solid #f44336;
-            border-radius: 8px;
+        /* AI 분석 결과 카드 */
+        .analysis-card {
+            background: white;
+            border-radius: 12px;
             padding: 20px;
-            margin-top: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .danger-zone h4 {
-            color: #f44336;
-            margin: 0 0 10px 0;
+        .analysis-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
 
-        .danger-zone p {
-            color: #666;
-            margin: 0 0 15px 0;
+        .analysis-image {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .analysis-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .analysis-info {
             font-size: 14px;
+            color: #666;
+        }
+
+        .analysis-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 8px 0;
+        }
+
+        .analyses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
         }
     </style>
 </head>
 <body>
-    <nav>
-        <div class="nav-container">
-            <h1><a href="/board.html">자유게시판</a></h1>
-            <div class="nav-right">
-                <span id="user-name"></span>
-                <button id="profile-button" class="btn-nav">프로필</button>
-                <button id="board-button" class="btn-nav">게시판</button>
-                <button id="logout-button" class="btn-nav">로그아웃</button>
+    <!-- 전역 네비게이션 -->
+    <nav class="global-nav">
+        <div class="global-nav-container">
+            <a href="index.html" class="nav-brand" style="text-decoration: none;">
+                <div class="nav-brand-icon">S</div>
+                <div class="nav-brand-text">
+                    <h1>SkinAI</h1>
+                    <p>피부 건강 관리 플랫폼</p>
+                </div>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">홈</a></li>
+                <li><a href="signup.html">회원가입</a></li>
+                <li><a href="ai-analysis.html">업로드</a></li>
+                <li><a href="my-analyses.html">결과보기</a></li>
+                <li><a href="board.html">커뮤니티</a></li>
+            </ul>
+            <div class="nav-user" id="nav-user-section">
+                <span class="nav-user-name" id="nav-user-name"></span>
+                <div class="nav-user-icon" id="nav-user-icon">👤</div>
             </div>
         </div>
     </nav>
 
     <div class="profile-container">
-        <div id="message-box" class="message"></div>
-
-        <div class="profile-header">
-            <h2>프로필</h2>
-            <div class="profile-info">
-                <div class="profile-label">이메일</div>
-                <div class="profile-value" id="profile-email">-</div>
-
-                <div class="profile-label">이름</div>
-                <div class="profile-value" id="profile-name">-</div>
-
-                <div class="profile-label">가입일</div>
-                <div class="profile-value" id="profile-created">-</div>
+        <!-- 프로필 헤더 -->
+        <div class="profile-header-card">
+            <div class="profile-header-content">
+                <div class="profile-header-left">
+                    <div class="profile-avatar" id="profile-avatar">U</div>
+                    <div class="profile-header-info">
+                        <h1 id="user-name-display">사용자</h1>
+                        <p id="user-email-display">user@example.com</p>
+                    </div>
+                </div>
+                <button class="btn-logout" id="logout-button">로그아웃</button>
             </div>
         </div>
 
-        <div class="profile-section">
-            <h3>프로필 수정</h3>
-
-            <form id="profile-form">
-                <div class="form-group">
-                    <label>이름</label>
-                    <input type="text" id="edit-name" placeholder="새로운 이름">
-                </div>
-
-                <div class="form-group">
-                    <label>현재 비밀번호</label>
-                    <input type="password" id="current-password" placeholder="비밀번호를 변경하려면 입력하세요">
-                    <small>비밀번호를 변경하지 않으려면 비워두세요</small>
-                </div>
-
-                <div class="form-group">
-                    <label>새 비밀번호</label>
-                    <input type="password" id="new-password" placeholder="새로운 비밀번호 (최소 6자)">
-                </div>
-
-                <div class="button-group">
-                    <button type="submit" class="btn btn-primary">저장</button>
-                    <button type="button" id="cancel-edit" class="btn btn-secondary">취소</button>
-                </div>
-            </form>
+        <!-- 탭 네비게이션 -->
+        <div class="profile-tabs">
+            <button class="profile-tab active" data-tab="info">내 정보</button>
+            <button class="profile-tab" data-tab="analyses">AI 분석 기록</button>
+            <button class="profile-tab" data-tab="posts">작성한 게시글</button>
+            <button class="profile-tab" data-tab="comments">작성한 댓글</button>
         </div>
 
-        <div class="profile-section">
-            <h3>내 활동</h3>
+        <!-- 탭 컨텐츠 -->
 
-            <div class="tabs">
-                <button class="tab active" data-tab="posts">내가 쓴 글</button>
-                <button class="tab" data-tab="comments">내가 쓴 댓글</button>
-            </div>
+        <!-- 내 정보 탭 -->
+        <div class="tab-content active" id="info-content">
+            <div class="info-card">
+                <h3>계정 정보</h3>
+                <div class="info-grid">
+                    <div class="info-label">이메일</div>
+                    <div class="info-value" id="profile-email">-</div>
 
-            <div id="posts-content" class="tab-content active">
-                <ul id="my-posts-list" class="activity-list"></ul>
-                <div id="posts-empty" class="empty-state" style="display: none;">
-                    작성한 게시글이 없습니다.
+                    <div class="info-label">가입일</div>
+                    <div class="info-value" id="profile-created">-</div>
                 </div>
             </div>
 
-            <div id="comments-content" class="tab-content">
-                <ul id="my-comments-list" class="activity-list"></ul>
-                <div id="comments-empty" class="empty-state" style="display: none;">
-                    작성한 댓글이 없습니다.
+            <div class="info-card">
+                <h3>프로필 수정</h3>
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label for="edit-name">이름</label>
+                        <input type="text" id="edit-name" placeholder="새로운 이름">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="current-password">현재 비밀번호 (비밀번호 변경 시)</label>
+                        <input type="password" id="current-password" placeholder="현재 비밀번호">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-password">새 비밀번호 (비밀번호 변경 시)</label>
+                        <input type="password" id="new-password" placeholder="새 비밀번호 (6자 이상)">
+                        <p class="form-hint">최소 6자 이상 입력하세요</p>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">저장</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="info-card">
+                <h3>회원 탈퇴</h3>
+                <p style="color: #999; margin-bottom: 16px;">회원 탈퇴 시 모든 데이터가 영구적으로 삭제됩니다.</p>
+                <button type="button" class="btn btn-danger" id="delete-account-btn">회원 탈퇴</button>
+            </div>
+        </div>
+
+        <!-- AI 분석 기록 탭 -->
+        <div class="tab-content" id="analyses-content">
+            <div class="info-card">
+                <h3>AI 피부 분석 기록</h3>
+                <div class="analyses-grid" id="analyses-list"></div>
+                <div class="empty-state" id="analyses-empty" style="display: none;">
+                    <div class="empty-state-icon">📊</div>
+                    <p>아직 AI 분석 기록이 없습니다.</p>
                 </div>
             </div>
         </div>
 
-        <div class="profile-section">
-            <div class="danger-zone">
-                <h4>위험 영역</h4>
-                <p>계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.</p>
-                <button id="delete-account-btn" class="btn btn-danger">회원 탈퇴</button>
+        <!-- 작성한 게시글 탭 -->
+        <div class="tab-content" id="posts-content">
+            <div class="info-card">
+                <h3>작성한 게시글</h3>
+                <ul class="activity-grid" id="my-posts-list"></ul>
+                <div class="empty-state" id="posts-empty" style="display: none;">
+                    <div class="empty-state-icon">📝</div>
+                    <p>작성한 게시글이 없습니다.</p>
+                </div>
             </div>
         </div>
+
+        <!-- 작성한 댓글 탭 -->
+        <div class="tab-content" id="comments-content">
+            <div class="info-card">
+                <h3>작성한 댓글</h3>
+                <ul class="activity-grid" id="my-comments-list"></ul>
+                <div class="empty-state" id="comments-empty" style="display: none;">
+                    <div class="empty-state-icon">💬</div>
+                    <p>작성한 댓글이 없습니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="message-box" class="message" style="display: none; position: fixed; top: 100px; right: 20px; z-index: 9999;"></div>
     </div>
 
+    <script src="common-nav.js"></script>
     <script src="profile.js"></script>
+    <script>
+        // 네비게이션 초기화
+        initializeNavigation('profile.html');
+    </script>
 </body>
 </html>

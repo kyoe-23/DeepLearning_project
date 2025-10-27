@@ -1,6 +1,8 @@
-# 사용자 인증 및 게시판 시스템 with AI 피부 분석
+# SkinAI - 피부 건강 관리 플랫폼
 
-Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 자유게시판, AI 피부 분석 서비스입니다. 회원가입, 로그인, 로그아웃, 회원탈퇴, 프로필 관리 기능과 게시글 작성, 조회, 수정, 삭제, 댓글, 좋아요 기능, 그리고 이미지 기반 AI 피부 분석 기능을 제공합니다.
+Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 커뮤니티 게시판, AI 피부 분석 서비스입니다.
+
+현대적인 UI/UX로 설계된 웹 애플리케이션으로, 회원가입/로그인, 프로필 관리, 카테고리별 게시판, 그리고 이미지 기반 AI 피부 분석 기능을 제공합니다.
 
 ## 기술 스택
 
@@ -39,8 +41,10 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 자유게
 │   └── node_modules/       # 백엔드 패키지
 ├── frontend/               # 프론트엔드 (정적 파일)
 │   └── src/               # 프론트엔드 소스 코드
-│       ├── index.html      # 로그인 페이지
-│       ├── script.js       # 로그인 로직
+│       ├── index.html      # 랜딩 페이지
+│       ├── script.js       # 랜딩 페이지 로직
+│       ├── login.html      # 로그인 페이지
+│       ├── login.js        # 로그인 로직
 │       ├── signup.html     # 회원가입 페이지
 │       ├── signup.js       # 회원가입 로직
 │       ├── board.html      # 게시판 메인 페이지
@@ -53,9 +57,11 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 자유게
 │       ├── profile.js      # 프로필 로직
 │       ├── ai-analysis.html# AI 피부 분석 페이지
 │       ├── ai-analysis.js  # AI 분석 로직
-│       ├── ai-result.html  # AI 분석 결과 페이지
+│       ├── my-analyses.html# 내 AI 분석 기록 페이지
+│       ├── ai-result.html  # AI 분석 결과 상세 페이지
 │       ├── ai-result.js    # AI 결과 로직
-│       └── style.css       # 스타일시트
+│       ├── common-nav.js   # 공통 네비게이션 로직
+│       └── style.css       # 전역 스타일시트
 ├── package.json            # 루트 패키지 설정
 ├── .gitignore             # Git 제외 파일
 ├── README.md              # 프로젝트 문서
@@ -117,14 +123,18 @@ npm start
 
 ### 4. 브라우저에서 접속
 
-| 페이지 | URL |
-|--------|-----|
-| 로그인 | http://localhost:3000/ |
-| 회원가입 | http://localhost:3000/signup.html |
-| 게시판 | http://localhost:3000/board.html |
-| 프로필 | http://localhost:3000/profile.html |
-| AI 피부 분석 | http://localhost:3000/ai-analysis.html |
-| 게시글 작성 | http://localhost:3000/post-write.html |
+| 페이지 | URL | 설명 |
+|--------|-----|------|
+| 랜딩 페이지 (홈) | http://localhost:3000/ | 서비스 소개 및 시작 |
+| 로그인 | http://localhost:3000/login.html | 사용자 로그인 |
+| 회원가입 | http://localhost:3000/signup.html | 신규 회원가입 |
+| AI 피부 분석 | http://localhost:3000/ai-analysis.html | 이미지 업로드 및 설문 |
+| 내 분석 결과 | http://localhost:3000/my-analyses.html | AI 분석 기록 목록 |
+| AI 분석 결과 상세 | http://localhost:3000/ai-result.html?id=1 | 분석 결과 상세 보기 |
+| 게시판 (커뮤니티) | http://localhost:3000/board.html | 커뮤니티 게시판 |
+| 게시글 작성 | http://localhost:3000/post-write.html | 새 게시글 작성 |
+| 게시글 상세 | http://localhost:3000/post-detail.html?id=1 | 게시글 상세 및 댓글 |
+| 프로필 | http://localhost:3000/profile.html | 사용자 프로필 관리 |
 
 ## API 레퍼런스
 
@@ -171,16 +181,18 @@ curl -X POST http://localhost:3000/api/auth/signup \
 
 ### 게시판 API (`/api/board/free`)
 
-| 메소드 | 엔드포인트 | 설명 | 요청 본문 |
-|--------|-----------|------|----------|
-| GET | `/posts` | 게시글 목록 | - |
-| POST | `/posts` | 게시글 작성 | `{title, content, authorId, authorName}` |
-| GET | `/posts/:id` | 게시글 상세 | - |
-| PUT | `/posts/:id` | 게시글 수정 | `{title, content, authorId}` |
-| DELETE | `/posts/:id` | 게시글 삭제 | `{authorId}` |
-| POST | `/posts/:id/like` | 좋아요 | `{userId}` |
-| POST | `/posts/:id/comments` | 댓글 작성 | `{content, authorId, authorName}` |
-| DELETE | `/posts/:postId/comments/:commentId` | 댓글 삭제 | `{authorId}` |
+| 메소드 | 엔드포인트 | 설명 | 요청 본문 | 인증 |
+|--------|-----------|------|----------|------|
+| GET | `/posts` | 게시글 목록 | `?search=검색어` (선택) | 필수 |
+| POST | `/posts` | 게시글 작성 | `{category, title, content, authorId, authorName}` | 필수 |
+| GET | `/posts/:id` | 게시글 상세 | - | 필수 |
+| PUT | `/posts/:id` | 게시글 수정 | `{category?, title, content, authorId}` | 필수 |
+| DELETE | `/posts/:id` | 게시글 삭제 | `{authorId}` | 필수 |
+| POST | `/posts/:id/like` | 좋아요 | `{userId}` | 필수 |
+| POST | `/posts/:id/comments` | 댓글 작성 | `{content, authorId, authorName}` | 필수 |
+| DELETE | `/posts/:postId/comments/:commentId` | 댓글 삭제 | `{authorId}` | 필수 |
+
+**카테고리**: `free` (자유게시판), `question` (질문), `info` (정보공유)
 
 <details>
 <summary>게시글 작성 예제</summary>
@@ -188,7 +200,9 @@ curl -X POST http://localhost:3000/api/auth/signup \
 ```bash
 curl -X POST http://localhost:3000/api/board/free/posts \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
+    "category": "free",
     "title": "첫 번째 게시글",
     "content": "안녕하세요!",
     "authorId": 1,
@@ -242,15 +256,24 @@ curl http://localhost:3000/api/ai/analysis/1 \
 
 ## 주요 기능
 
+### 🎨 현대적인 UI/UX
+- **랜딩 페이지**: Hero 섹션과 서비스 소개
+- **통합 네비게이션**: 모든 페이지에서 일관된 네비게이션 바
+- **반응형 디자인**: 모바일, 태블릿, 데스크톱 지원
+- **로그인 상태 관리**: 로그인 시 회원가입 메뉴 자동 숨김
+- **직관적인 인터페이스**: 카드 기반 레이아웃, 부드러운 애니메이션
+
 ### 인증 시스템
 
 #### 회원가입
 - 이메일 형식 검증
 - 비밀번호 최소 6자 이상
+- 비밀번호 확인 필드
 - 이름 필수 입력
 - 중복 이메일 체크
 - 비밀번호 bcrypt 해싱 (10 salt rounds)
 - 회원가입 성공 시 JWT 토큰 발급
+- 혜택 안내 사이드바
 
 #### 로그인
 - 이메일과 비밀번호 검증
@@ -261,6 +284,7 @@ curl http://localhost:3000/api/ai/analysis/1 \
 
 #### 로그아웃
 - localStorage에서 토큰 및 사용자 정보 삭제
+- 프로필 페이지 헤더에 로그아웃 버튼
 - JWT는 stateless이므로 서버에서 별도 처리 불필요
 
 #### 회원탈퇴
@@ -269,22 +293,31 @@ curl http://localhost:3000/api/ai/analysis/1 \
 - 삭제 전 확인 메시지 표시
 
 #### 프로필 관리
-- 프로필 정보 조회 (이메일, 이름, 가입일)
-- 이름 변경
-- 비밀번호 변경 (현재 비밀번호 확인 필요)
-- 내가 쓴 게시글 목록 조회
-- 내가 쓴 댓글 목록 조회
-- 프로필 페이지에서 회원 탈퇴 가능
+- **현대적인 프로필 페이지**: 그라디언트 헤더, 탭 네비게이션
+- **4개 탭 시스템**:
+  - 내 정보: 이름, 이메일, 비밀번호 변경
+  - AI 분석 기록: 과거 피부 분석 결과 조회
+  - 작성한 게시글: 카테고리 배지와 함께 표시
+  - 작성한 댓글: 해당 게시글로 이동 가능
+- 아바타 표시 (이름 첫 글자)
+- 프로필 페이지에서 회원 탈퇴 및 로그아웃 가능
 
-### 게시판 시스템
+### 게시판 시스템 (커뮤니티)
+
+#### 카테고리 시스템
+- **3개 카테고리**: 자유게시판, 질문, 정보공유
+- 카테고리별 필터링
+- 게시글 작성 시 카테고리 선택 필수
+- 카테고리별 게시글 수 표시
 
 #### 게시글 관리
 - 게시글 목록 조회 (최신순 정렬)
-- 게시글 작성 (제목, 내용 필수)
+- 게시글 작성 (카테고리, 제목, 내용 필수)
 - 게시글 상세 조회 (조회수 자동 증가)
 - 게시글 수정 (작성자만 가능)
 - 게시글 삭제 (작성자만 가능)
-- 각 게시글에 댓글 수, 좋아요 수 표시
+- 각 게시글에 카테고리 배지, 댓글 수, 좋아요 수 표시
+- 검색 기능 (제목, 내용, 작성자명)
 
 #### 좋아요
 - 게시글에 좋아요 추가
@@ -319,24 +352,30 @@ curl http://localhost:3000/api/ai/analysis/1 \
 - 내 분석 기록 조회
 - 시각적 결과 표시 (차트, 점수)
 
-### 보안 기능
+### 🔒 보안 기능
 
-#### 구현됨
-- JWT 인증 미들웨어
-- 모든 Board API 및 AI API 인증 적용
-- Rate Limiting (API 남용 방지)
+#### 구현됨 ✅
+- **JWT 인증**: 모든 Board API 및 AI API에 인증 적용
+- **JWT 인증 미들웨어**: `backend/src/middleware/auth.js`
+- **Rate Limiting** (API 남용 방지):
   - 일반 API: 분당 100회
-  - 인증 API: 15분당 5회
+  - 인증 API (login/signup): 15분당 5회
   - 게시글 작성: 분당 3회
-- 비밀번호 bcrypt 해싱 (10 salt rounds)
-- 입력값 검증 (express-validator)
-- 중복 이메일 체크
-- 에러 메시지 일반화 (로그인 실패 시)
+- **비밀번호 보안**: bcrypt 해싱 (10 salt rounds)
+- **입력값 검증**: express-validator를 통한 모든 입력값 검증
+- **중복 이메일 체크**: 회원가입 시 자동 확인
+- **에러 메시지 일반화**: 로그인 실패 시 구체적 정보 노출 방지
+- **파일 업로드 제한**:
+  - 최대 파일 크기: 5MB
+  - 허용 형식: JPG, PNG만
 
-#### 미구현 (향후 개선 필요)
+#### 미구현 ⚠️ (향후 개선 필요)
 - CORS 설정
 - HTTPS 지원
 - 파일 업로드 악성코드 검사
+- 세션 관리
+- 비밀번호 재설정
+- 이메일 인증
 
 ## 시스템 동작 방식
 
@@ -418,53 +457,61 @@ sequenceDiagram
 ### 중요한 제한사항
 
 1. **인메모리 데이터 저장**
-   - 모든 데이터(사용자, 게시글, 댓글, 좋아요)가 메모리에 저장됨
+   - 모든 데이터(사용자, 게시글, 댓글, 좋아요, AI 분석)가 메모리에 저장됨
    - 서버 재시작 시 모든 데이터 손실
    - 데이터베이스 미사용
 
-2. **인증/인가 미구현**
-   - JWT 검증 미들웨어 없음
-   - 게시판 API가 인증 없이 접근 가능
-   - `authorId`를 요청 본문으로 받아 쉽게 위조 가능
-
-3. **성능 이슈**
+2. **성능 이슈**
    - 페이지네이션 없음 (모든 게시글 한번에 로드)
-   - 검색 기능 없음
    - 인덱싱 없음
+   - 이미지 파일 로컬 저장 (클라우드 스토리지 미사용)
+
+3. **AI 분석 제한**
+   - 현재 규칙 기반 분석 (실제 AI 모델 미적용)
+   - 단순 설문 응답 기반 점수 산출
 
 4. **기타 제한사항**
-   - 파일/이미지 업로드 불가
-   - Rate limiting 없음
    - CORS 미설정
    - HTTPS 미지원
    - 에러 핸들링 기본 수준
+   - ID 생성 방식 (삭제 후 재생성 시 충돌 가능)
 
 ### 개선 로드맵
 
-**Phase 1: 보안 강화** (완료)
+**Phase 1: 보안 강화** ✅ 완료
 - [x] JWT 인증 미들웨어 구현
-- [x] 모든 Board API에 인증 적용
+- [x] 모든 Board API 및 AI API에 인증 적용
 - [x] Rate limiting 추가
 
-**Phase 2: 데이터베이스 연동**
-- [ ] MongoDB/PostgreSQL 연동
-- [ ] 데이터 영속성 확보
-- [ ] 인덱싱 추가
+**Phase 2: UI/UX 개선** ✅ 완료
+- [x] 현대적인 랜딩 페이지
+- [x] 통합 네비게이션 시스템
+- [x] 프로필 페이지 탭 시스템
+- [x] 게시판 카테고리 시스템 (자유게시판, 질문, 정보공유)
+- [x] 반응형 디자인
+- [x] 카드 기반 레이아웃
 
 **Phase 3: 기능 확장** (일부 완료)
 - [x] 게시글 검색
 - [x] 이미지 업로드 (AI 분석용)
 - [x] AI 피부 분석 시스템
+- [x] 게시판 카테고리 분류
 - [ ] 게시글 페이지네이션
-- [ ] 게시판 카테고리 분류
 - [ ] 비밀번호 재설정
 - [ ] 이메일 인증
 - [ ] 실제 AI 모델 통합 (현재는 규칙 기반)
 
-**Phase 4: 프로덕션 준비**
+**Phase 4: 데이터베이스 연동**
+- [ ] MongoDB/PostgreSQL 연동
+- [ ] 데이터 영속성 확보
+- [ ] 인덱싱 추가
+- [ ] 클라우드 이미지 스토리지 (AWS S3, Cloudinary 등)
+
+**Phase 5: 프로덕션 준비**
 - [ ] HTTPS & CORS 설정
 - [ ] 로깅 & 모니터링
 - [ ] 배포 자동화
+- [ ] 성능 최적화
 
 ## 개발 가이드
 
@@ -517,7 +564,39 @@ curl -X POST http://localhost:3000/api/auth/signup \
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+## 변경 로그
+
+### v2.0.1 (2025-10-27) - 네비게이션 개선
+- 🔧 '결과보기' 메뉴를 AI 분석 기록 페이지로 변경
+- ➕ 내 AI 분석 기록 페이지 추가 (my-analyses.html)
+- 👤 사용자 아이콘 클릭 시 프로필 페이지로 이동
+- 🔑 로그아웃 시 메시지 제거 (즉시 리다이렉트)
+- 🐛 프로필 페이지 데이터 로딩 오류 수정
+
+### v2.0.0 (2025-10-27) - UI/UX 대규모 개선
+- 🎨 현대적인 랜딩 페이지 추가 (Hero 섹션, 서비스 소개)
+- 🎨 로그인 페이지 분리 (index.html → login.html)
+- 🎨 회원가입 페이지 개선 (비밀번호 확인, 혜택 안내 사이드바)
+- 🎨 프로필 페이지 완전 재설계 (그라디언트 헤더, 탭 네비게이션, 4개 탭)
+- 📁 게시판 카테고리 시스템 (자유게시판, 질문, 정보공유)
+- 🔧 통합 네비게이션 시스템 (common-nav.js)
+- 🔐 로그인 상태별 메뉴 표시/숨김 기능
+- 🔑 프로필 페이지에 로그아웃 버튼 추가
+- 📱 반응형 디자인 개선
+- 🎯 카드 기반 레이아웃 적용
+
+### v1.0.0 (이전) - 초기 버전
+- ✅ JWT 기반 인증 시스템
+- ✅ 게시판 CRUD 기능
+- ✅ AI 피부 분석 시스템
+- ✅ Rate Limiting
+- ✅ 파일 업로드 (이미지)
+
 ## 라이선스
 
 ISC License - 자유롭게 사용, 수정, 배포 가능합니다.
+
+---
+
+**Made with ❤️ for skin health management**
 

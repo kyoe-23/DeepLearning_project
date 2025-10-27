@@ -1,30 +1,6 @@
 // API 기본 경로
 const AUTH_API_URL = '/api/auth';
 
-// DOM 요소
-const messageBox = document.getElementById('message-box');
-const userNameSpan = document.getElementById('user-name');
-const profileButton = document.getElementById('profile-button');
-const boardButton = document.getElementById('board-button');
-const logoutButton = document.getElementById('logout-button');
-
-const profileEmail = document.getElementById('profile-email');
-const profileName = document.getElementById('profile-name');
-const profileCreated = document.getElementById('profile-created');
-
-const profileForm = document.getElementById('profile-form');
-const editNameInput = document.getElementById('edit-name');
-const currentPasswordInput = document.getElementById('current-password');
-const newPasswordInput = document.getElementById('new-password');
-const cancelEditButton = document.getElementById('cancel-edit');
-
-const myPostsList = document.getElementById('my-posts-list');
-const myCommentsList = document.getElementById('my-comments-list');
-const postsEmpty = document.getElementById('posts-empty');
-const commentsEmpty = document.getElementById('comments-empty');
-
-const deleteAccountBtn = document.getElementById('delete-account-btn');
-
 // 현재 사용자 정보
 let currentUser = null;
 
@@ -44,14 +20,17 @@ function checkLogin() {
 
 // 메시지 표시
 function showMessage(message, type) {
-    messageBox.textContent = message;
-    messageBox.className = `message ${type}`;
-    messageBox.style.display = 'block';
-    setTimeout(() => {
-        messageBox.textContent = '';
-        messageBox.className = 'message';
-        messageBox.style.display = 'none';
-    }, 3000);
+    const messageBox = document.getElementById('message-box');
+    if (messageBox) {
+        messageBox.textContent = message;
+        messageBox.className = `message ${type}`;
+        messageBox.style.display = 'block';
+        setTimeout(() => {
+            messageBox.textContent = '';
+            messageBox.className = 'message';
+            messageBox.style.display = 'none';
+        }, 3000);
+    }
 }
 
 // API 요청 헬퍼
@@ -91,10 +70,24 @@ async function loadProfile() {
 
     if (result.success) {
         const profile = result.data;
-        profileEmail.textContent = profile.email;
-        profileName.textContent = profile.name;
-        profileCreated.textContent = formatDate(profile.createdAt);
-        editNameInput.value = profile.name;
+
+        // 헤더 업데이트
+        const userNameDisplay = document.getElementById('user-name-display');
+        const userEmailDisplay = document.getElementById('user-email-display');
+        const profileAvatar = document.getElementById('profile-avatar');
+
+        if (userNameDisplay) userNameDisplay.textContent = profile.name;
+        if (userEmailDisplay) userEmailDisplay.textContent = profile.email;
+        if (profileAvatar) profileAvatar.textContent = profile.name.charAt(0).toUpperCase();
+
+        // 프로필 정보 탭 업데이트
+        const profileEmail = document.getElementById('profile-email');
+        const profileCreated = document.getElementById('profile-created');
+        const editNameInput = document.getElementById('edit-name');
+
+        if (profileEmail) profileEmail.textContent = profile.email;
+        if (profileCreated) profileCreated.textContent = formatDate(profile.createdAt);
+        if (editNameInput) editNameInput.value = profile.name;
     } else {
         showMessage(result.message, 'error');
     }
@@ -104,9 +97,13 @@ async function loadProfile() {
 async function updateProfile(e) {
     e.preventDefault();
 
-    const name = editNameInput.value.trim();
-    const currentPassword = currentPasswordInput.value;
-    const newPassword = newPasswordInput.value;
+    const editNameInput = document.getElementById('edit-name');
+    const currentPasswordInput = document.getElementById('current-password');
+    const newPasswordInput = document.getElementById('new-password');
+
+    const name = editNameInput?.value.trim();
+    const currentPassword = currentPasswordInput?.value;
+    const newPassword = newPasswordInput?.value;
 
     // 이름도 비밀번호도 변경하지 않는 경우
     if (!name && !currentPassword && !newPassword) {
@@ -143,11 +140,10 @@ async function updateProfile(e) {
         };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         currentUser = updatedUser;
-        userNameSpan.textContent = `${updatedUser.name}님`;
 
         // 폼 초기화
-        currentPasswordInput.value = '';
-        newPasswordInput.value = '';
+        if (currentPasswordInput) currentPasswordInput.value = '';
+        if (newPasswordInput) newPasswordInput.value = '';
 
         // 프로필 다시 로드
         await loadProfile();
@@ -156,21 +152,80 @@ async function updateProfile(e) {
     }
 }
 
+// AI 분석 기록 로드
+async function loadMyAnalyses() {
+    const result = await apiRequest(`/api/ai/my-analyses`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
+    const analysesList = document.getElementById('analyses-list');
+    const analysesEmpty = document.getElementById('analyses-empty');
+
+    if (result.success) {
+        const analyses = result.data;
+
+        if (analyses.length === 0) {
+            if (analysesList) analysesList.style.display = 'none';
+            if (analysesEmpty) analysesEmpty.style.display = 'block';
+        } else {
+            if (analysesList) analysesList.style.display = 'grid';
+            if (analysesEmpty) analysesEmpty.style.display = 'none';
+            renderMyAnalyses(analyses);
+        }
+    } else {
+        showMessage(result.message, 'error');
+    }
+}
+
+// AI 분석 기록 렌더링
+function renderMyAnalyses(analyses) {
+    const analysesList = document.getElementById('analyses-list');
+    if (!analysesList) return;
+
+    analysesList.innerHTML = '';
+
+    analyses.forEach(analysis => {
+        const card = document.createElement('div');
+        card.className = 'analysis-card';
+        card.onclick = () => {
+            window.location.href = `/ai-result.html?id=${analysis.id}`;
+        };
+
+        card.innerHTML = `
+            <div class="analysis-image">
+                <img src="/uploads/${escapeHtml(analysis.imageFilename)}" alt="피부 사진">
+            </div>
+            <div class="analysis-info">
+                <div class="analysis-date">${formatDate(analysis.createdAt)}</div>
+                <div class="analysis-result">피부 타입: ${escapeHtml(analysis.skinType || '분석 중')}</div>
+            </div>
+        `;
+
+        analysesList.appendChild(card);
+    });
+}
+
 // 내가 쓴 글 로드
 async function loadMyPosts() {
     const result = await apiRequest(`${AUTH_API_URL}/my-posts?userId=${currentUser.id}`, {
         method: 'GET'
     });
 
+    const myPostsList = document.getElementById('my-posts-list');
+    const postsEmpty = document.getElementById('posts-empty');
+
     if (result.success) {
         const posts = result.data;
 
         if (posts.length === 0) {
-            myPostsList.style.display = 'none';
-            postsEmpty.style.display = 'block';
+            if (myPostsList) myPostsList.style.display = 'none';
+            if (postsEmpty) postsEmpty.style.display = 'block';
         } else {
-            myPostsList.style.display = 'block';
-            postsEmpty.style.display = 'none';
+            if (myPostsList) myPostsList.style.display = 'block';
+            if (postsEmpty) postsEmpty.style.display = 'none';
             renderMyPosts(posts);
         }
     } else {
@@ -180,7 +235,17 @@ async function loadMyPosts() {
 
 // 내가 쓴 글 렌더링
 function renderMyPosts(posts) {
+    const myPostsList = document.getElementById('my-posts-list');
+    if (!myPostsList) return;
+
     myPostsList.innerHTML = '';
+
+    // 카테고리 한글 매핑
+    const categoryNames = {
+        'free': '자유게시판',
+        'question': '질문',
+        'info': '정보공유'
+    };
 
     posts.forEach(post => {
         const li = document.createElement('li');
@@ -189,8 +254,13 @@ function renderMyPosts(posts) {
             window.location.href = `/post-detail.html?id=${post.id}`;
         };
 
+        const categoryName = categoryNames[post.category] || '자유게시판';
+
         li.innerHTML = `
-            <div class="activity-title">${escapeHtml(post.title)}</div>
+            <div class="activity-title">
+                <span class="category-badge">${categoryName}</span>
+                ${escapeHtml(post.title)}
+            </div>
             <div class="activity-content">${escapeHtml(post.content)}</div>
             <div class="activity-meta">조회 ${post.views} · ${formatDate(post.createdAt)}</div>
         `;
@@ -205,15 +275,18 @@ async function loadMyComments() {
         method: 'GET'
     });
 
+    const myCommentsList = document.getElementById('my-comments-list');
+    const commentsEmpty = document.getElementById('comments-empty');
+
     if (result.success) {
         const comments = result.data;
 
         if (comments.length === 0) {
-            myCommentsList.style.display = 'none';
-            commentsEmpty.style.display = 'block';
+            if (myCommentsList) myCommentsList.style.display = 'none';
+            if (commentsEmpty) commentsEmpty.style.display = 'block';
         } else {
-            myCommentsList.style.display = 'block';
-            commentsEmpty.style.display = 'none';
+            if (myCommentsList) myCommentsList.style.display = 'block';
+            if (commentsEmpty) commentsEmpty.style.display = 'none';
             renderMyComments(comments);
         }
     } else {
@@ -223,6 +296,9 @@ async function loadMyComments() {
 
 // 내가 쓴 댓글 렌더링
 function renderMyComments(comments) {
+    const myCommentsList = document.getElementById('my-comments-list');
+    if (!myCommentsList) return;
+
     myCommentsList.innerHTML = '';
 
     comments.forEach(comment => {
@@ -252,7 +328,7 @@ function escapeHtml(text) {
 // 탭 전환
 function switchTab(tabName) {
     // 모든 탭 비활성화
-    document.querySelectorAll('.tab').forEach(tab => {
+    document.querySelectorAll('.profile-tab').forEach(tab => {
         tab.classList.remove('active');
     });
     document.querySelectorAll('.tab-content').forEach(content => {
@@ -260,14 +336,16 @@ function switchTab(tabName) {
     });
 
     // 선택한 탭 활성화
-    const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+    const selectedTab = document.querySelector(`.profile-tab[data-tab="${tabName}"]`);
     const selectedContent = document.getElementById(`${tabName}-content`);
 
     if (selectedTab) selectedTab.classList.add('active');
     if (selectedContent) selectedContent.classList.add('active');
 
     // 데이터 로드
-    if (tabName === 'posts') {
+    if (tabName === 'analyses') {
+        loadMyAnalyses();
+    } else if (tabName === 'posts') {
         loadMyPosts();
     } else if (tabName === 'comments') {
         loadMyComments();
@@ -307,37 +385,37 @@ async function deleteAccount() {
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    showMessage('로그아웃되었습니다.', 'success');
-    setTimeout(() => {
-        window.location.href = '/index.html';
-    }, 1000);
+    window.location.href = '/index.html';
 }
-
-// 이벤트 리스너
-profileForm.addEventListener('submit', updateProfile);
-cancelEditButton.addEventListener('click', () => {
-    editNameInput.value = currentUser.name;
-    currentPasswordInput.value = '';
-    newPasswordInput.value = '';
-});
-
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        switchTab(tab.dataset.tab);
-    });
-});
-
-deleteAccountBtn.addEventListener('click', deleteAccount);
-profileButton.addEventListener('click', () => window.location.href = '/profile.html');
-boardButton.addEventListener('click', () => window.location.href = '/board.html');
-logoutButton.addEventListener('click', logout);
 
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', () => {
     currentUser = checkLogin();
     if (currentUser) {
-        userNameSpan.textContent = `${currentUser.name}님`;
         loadProfile();
-        loadMyPosts();
+        // 첫 번째 탭(내 정보)이 기본으로 활성화되어 있으므로 추가 로드 불필요
+    }
+
+    // 이벤트 리스너
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', updateProfile);
+    }
+
+    document.querySelectorAll('.profile-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            switchTab(tab.dataset.tab);
+        });
+    });
+
+    const deleteAccountBtn = document.getElementById('delete-account-btn');
+    if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener('click', deleteAccount);
+    }
+
+    // 로그아웃 버튼
+    const logoutButton = document.getElementById('logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', logout);
     }
 });

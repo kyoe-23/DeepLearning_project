@@ -4,6 +4,7 @@ const API_BASE_URL = '/api/board';
 // DOM 요소
 const pageTitle = document.getElementById('page-title');
 const postForm = document.getElementById('post-form');
+const categorySelect = document.getElementById('category');
 const titleInput = document.getElementById('title');
 const contentInput = document.getElementById('content');
 const titleCount = document.getElementById('title-count');
@@ -81,6 +82,7 @@ async function loadPost() {
             submitButton.textContent = '수정';
 
             // 폼에 데이터 채우기
+            categorySelect.value = post.category || 'free';
             titleInput.value = post.title;
             contentInput.value = post.content;
             updateCharCount();
@@ -102,7 +104,7 @@ function goToBoard() {
 }
 
 // 게시글 작성
-async function createPost(title, content) {
+async function createPost(category, title, content) {
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/free/posts`, {
@@ -112,6 +114,7 @@ async function createPost(title, content) {
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
+                category,
                 title,
                 content,
                 authorId: currentUser.id,
@@ -140,7 +143,7 @@ async function createPost(title, content) {
 }
 
 // 게시글 수정
-async function updatePost(title, content) {
+async function updatePost(category, title, content) {
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_BASE_URL}/free/posts/${editPostId}`, {
@@ -150,6 +153,7 @@ async function updatePost(title, content) {
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
+                category,
                 title,
                 content,
                 authorId: currentUser.id
@@ -176,8 +180,15 @@ async function updatePost(title, content) {
 postForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const category = categorySelect.value;
     const title = titleInput.value.trim();
     const content = contentInput.value.trim();
+
+    if (!category) {
+        showMessage('카테고리를 선택해주세요.', 'error');
+        categorySelect.focus();
+        return;
+    }
 
     if (!title) {
         showMessage('제목을 입력해주세요.', 'error');
@@ -195,9 +206,9 @@ postForm.addEventListener('submit', async (e) => {
     submitButton.disabled = true;
 
     if (editMode) {
-        await updatePost(title, content);
+        await updatePost(category, title, content);
     } else {
-        await createPost(title, content);
+        await createPost(category, title, content);
     }
 
     // 버튼 다시 활성화

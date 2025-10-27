@@ -3,40 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사용자 인증</title>
+    <title>SkinAI - 피부 건강 관리 플랫폼</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* 홈페이지 전용 스타일 */
+        body {
+            background-color: #fafafa;
+        }
+
+        .hero-section {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .hero-title {
+            font-size: 56px;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 48px;
+            max-width: 600px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            padding: 16px 40px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            padding: 16px 40px;
+            background-color: white;
+            color: #333;
+            border: 2px solid #333;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #333;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .privacy-notice {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+            padding: 16px 24px;
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .privacy-icon {
+            font-size: 20px;
+        }
+
+        .features-section {
+            max-width: 1200px;
+            margin: 80px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 42px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .feature-description {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
 </head>
-<body class="auth-page">
-    <div class="container">
-        <h1>사용자 인증 시스템</h1>
-        <div id="auth-section">
-            <form id="login-form" class="auth-form">
-                <h2>로그인</h2>
-                <input type="email" id="login-email" placeholder="이메일" required>
-                <input type="password" id="login-password" placeholder="비밀번호" required>
-                <button type="submit">로그인</button>
-                <div class="signup-link">
-                    <p>계정이 없으신가요? <a href="signup.html">회원가입</a></p>
+<body>
+    <!-- 전역 네비게이션 -->
+    <nav class="global-nav">
+        <div class="global-nav-container">
+            <a href="index.html" class="nav-brand" style="text-decoration: none;">
+                <div class="nav-brand-icon">S</div>
+                <div class="nav-brand-text">
+                    <h1>SkinAI</h1>
+                    <p>피부 건강 관리 플랫폼</p>
                 </div>
-            </form>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="active">홈</a></li>
+                <li><a href="signup.html">회원가입</a></li>
+                <li><a href="ai-analysis.html">업로드</a></li>
+                <li><a href="my-analyses.html">결과보기</a></li>
+                <li><a href="board.html">커뮤니티</a></li>
+            </ul>
+            <div class="nav-user" id="nav-user-section">
+                <span class="nav-user-name" id="nav-user-name"></span>
+                <div class="nav-user-icon" id="nav-user-icon">👤</div>
+            </div>
         </div>
+    </nav>
 
-        <div id="user-section" class="hidden">
-            <h2 id="welcome-message"></h2>
-            <button id="logout-button">로그아웃</button>
-            <hr>
-            <form id="delete-form" class="auth-form">
-                <h3>회원 탈퇴</h3>
-                <p>계정을 삭제하려면 이메일과 비밀번호를 입력하세요.</p>
-                <input type="email" id="delete-email" placeholder="이메일" required>
-                <input type="password" id="delete-password" placeholder="비밀번호" required>
-                <button type="submit" class="danger">계정 삭제</button>
-            </form>
+    <!-- 히어로 섹션 -->
+    <section class="hero-section">
+        <h1 class="hero-title">당신의 피부, AI가 먼저 알아봅니다</h1>
+        <p class="hero-subtitle">이미지 업로드만으로 피부 질환 예측과 맞춤 관리까지</p>
+        <div class="hero-buttons">
+            <a href="#" id="start-now-btn" class="btn-primary">
+                지금 시작하기 →
+            </a>
+            <a href="signup.html" class="btn-secondary">
+                회원가입하고 시작하기
+            </a>
         </div>
+        <div class="privacy-notice">
+            <span class="privacy-icon">🔒</span>
+            <span>개인정보는 로컬에서만 처리되어 안전합니다</span>
+        </div>
+    </section>
 
-        <div id="message-box" class="message"></div>
-    </div>
+    <!-- 기능 소개 섹션 -->
+    <section class="features-section">
+        <h2 class="section-title">왜 SkinAI를 선택해야 할까요?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <h3 class="feature-title">분석 기록 자동 저장</h3>
+                <p class="feature-description">회원가입하고 더 나은 피부 건강 관리를 경험해보세요</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">맞춤형 관리 카드 제공</h3>
+                <p class="feature-description">AI가 분석한 결과를 바탕으로 개인화된 피부 관리 가이드를 제공합니다</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3 class="feature-title">전문의 상담 이력 관리</h3>
+                <p class="feature-description">피부과 전문의와의 상담 내용을 체계적으로 관리할 수 있습니다</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3 class="feature-title">개인화된 건강 리포트</h3>
+                <p class="feature-description">시간에 따른 피부 상태 변화를 추적하고 분석합니다</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⏰</div>
+                <h3 class="feature-title">정기 알림 서비스</h3>
+                <p class="feature-description">피부 관리 루틴을 위한 맞춤 알림을 받아보세요</p>
+            </div>
+        </div>
+    </section>
 
-    <script src="script.js"></script>
+    <script src="common-nav.js"></script>
+    <script>
+        // 네비게이션 초기화
+        initializeNavigation('index.html');
+
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+        // '지금 시작하기' 버튼 클릭 이벤트
+        document.getElementById('start-now-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (user) {
+                // 로그인 상태: AI 분석 페이지로 이동
+                window.location.href = 'ai-analysis.html';
+            } else {
+                // 비로그인 상태: 로그인 페이지로 유도
+                if (confirm('로그인이 필요한 서비스입니다. 로그인 페이지로 이동하시겠습니까?')) {
+                    window.location.href = 'login.html';
+                }
+            }
+        });
+    </script>
 </body>
 </html>

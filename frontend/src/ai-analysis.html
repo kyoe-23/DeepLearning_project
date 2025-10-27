@@ -242,14 +242,26 @@
     </style>
 </head>
 <body>
-    <nav>
-        <div class="nav-container">
-            <h1><a href="/board.html">자유게시판</a></h1>
-            <div class="nav-right">
-                <span id="user-name"></span>
-                <button id="profile-button" class="btn-nav">프로필</button>
-                <button id="board-button" class="btn-nav">게시판</button>
-                <button id="logout-button" class="btn-nav">로그아웃</button>
+    <!-- 전역 네비게이션 -->
+    <nav class="global-nav">
+        <div class="global-nav-container">
+            <a href="index.html" class="nav-brand" style="text-decoration: none;">
+                <div class="nav-brand-icon">S</div>
+                <div class="nav-brand-text">
+                    <h1>SkinAI</h1>
+                    <p>피부 건강 관리 플랫폼</p>
+                </div>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">홈</a></li>
+                <li><a href="signup.html">회원가입</a></li>
+                <li><a href="ai-analysis.html" class="active">업로드</a></li>
+                <li><a href="my-analyses.html">결과보기</a></li>
+                <li><a href="board.html">커뮤니티</a></li>
+            </ul>
+            <div class="nav-user" id="nav-user-section">
+                <span class="nav-user-name" id="nav-user-name"></span>
+                <div class="nav-user-icon" id="nav-user-icon">👤</div>
             </div>
         </div>
     </nav>
@@ -271,8 +283,8 @@
 
             <div class="upload-area" id="upload-area">
                 <div class="upload-icon">📷</div>
-                <div class="upload-text">클릭하거나 파일을 드래그하여 업로드</div>
-                <div class="upload-hint">JPG, PNG 파일 (최대 5MB)</div>
+                <div class="upload-text">이미지를 여기에 드래그하거나 클릭하여 업로드하세요</div>
+                <div class="upload-hint">JPG, PNG 형식 | 최대 10MB</div>
                 <input type="file" id="image-input" accept="image/jpeg,image/png" style="display: none;">
             </div>
 
@@ -311,6 +323,11 @@
         </div>
     </div>
 
+    <script src="common-nav.js"></script>
     <script src="ai-analysis.js"></script>
+    <script>
+        // 네비게이션 초기화
+        initializeNavigation('ai-analysis.html');
+    </script>
 </body>
 </html>

@@ -73,7 +73,7 @@ router.post('/free/posts', authenticateToken, createPostLimiter, [
       });
     }
 
-    const { title, content } = req.body;
+    const { category, title, content } = req.body;
 
     // JWT에서 사용자 정보 가져오기
     const authorId = req.user.userId;
@@ -92,6 +92,7 @@ router.post('/free/posts', authenticateToken, createPostLimiter, [
     // 새 게시글 생성
     const newPost = {
       id: postIdCounter++,
+      category: category || 'free', // 카테고리 기본값: 자유게시판
       title,
       content,
       authorId,
@@ -171,7 +172,7 @@ router.put('/free/posts/:id', authenticateToken, [
     }
 
     const postId = parseInt(req.params.id);
-    const { title, content } = req.body;
+    const { category, title, content } = req.body;
     const authorId = req.user.userId;
     const postIndex = posts.findIndex(p => p.id === postId);
 
@@ -193,6 +194,7 @@ router.put('/free/posts/:id', authenticateToken, [
     // 게시글 수정
     posts[postIndex] = {
       ...posts[postIndex],
+      category: category || posts[postIndex].category || 'free',
       title,
       content,
       updatedAt: new Date().toISOString()

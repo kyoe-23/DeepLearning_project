@@ -50,6 +50,19 @@ signupForm.addEventListener('submit', async (e) => {
     const name = document.getElementById('signup-name').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
+    const passwordConfirm = document.getElementById('signup-password-confirm').value;
+
+    // 비밀번호 확인 검증
+    if (password !== passwordConfirm) {
+        showMessage('비밀번호가 일치하지 않습니다.', 'error');
+        return;
+    }
+
+    // 비밀번호 길이 검증
+    if (password.length < 6) {
+        showMessage('비밀번호는 최소 6자 이상이어야 합니다.', 'error');
+        return;
+    }
 
     const result = await apiRequest('/signup', 'POST', { name, email, password });
     if (result && result.success) {
