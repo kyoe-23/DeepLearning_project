@@ -598,5 +598,3 @@ ISC License - 자유롭게 사용, 수정, 배포 가능합니다.
 
 ---
 
-**Made with ❤️ for skin health management**
-
