@@ -5,135 +5,163 @@
 
 ## 시스템 아키텍처 다이어그램
 
+### 전체 시스템 구조
+```mermaid
+graph LR
+    subgraph CLIENT["클라이언트 계층"]
+        direction TB
+        FE["<b>프론트엔드</b><br/>HTML/CSS/JS"]
+        STORAGE["<b>Local Storage</b><br/>JWT Token<br/>User Info"]
+        FE --- STORAGE
+    end
+
+    subgraph SERVER["서버 계층 (Express :3000)"]
+        direction TB
+        MW["<b>미들웨어</b><br/>JWT 인증<br/>Rate Limiter<br/>Validator"]
+        API["<b>API 라우터</b><br/>/api/auth<br/>/api/board<br/>/api/ai"]
+        LOGIC["<b>비즈니스 로직</b><br/>사용자 관리<br/>게시판 관리<br/>AI 분석"]
+        MW --> API --> LOGIC
+    end
+
+    subgraph DATA["데이터 계층"]
+        direction TB
+        MEMORY["<b>In-Memory DB</b><br/>Users, Posts<br/>Comments, Analyses"]
+        FILES["<b>파일 시스템</b><br/>uploads/"]
+        MEMORY --- FILES
+    end
+
+    subgraph SECURITY["보안"]
+        direction TB
+        SEC["<b>JWT</b><br/><b>Bcrypt</b><br/><b>Multer</b>"]
+    end
+
+    CLIENT <-->|"HTTP Request/Response<br/>Authorization: Bearer Token"| SERVER
+    SERVER <-->|"Read/Write"| DATA
+    SERVER -.->|"사용"| SECURITY
+
+    style CLIENT fill:#2196F3,stroke:#1565C0,stroke-width:3px,color:#fff
+    style SERVER fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#fff
+    style DATA fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    style SECURITY fill:#F44336,stroke:#C62828,stroke-width:3px,color:#fff
+    
+    style FE fill:#42A5F5,stroke:#1565C0,stroke-width:2px,color:#000
+    style STORAGE fill:#42A5F5,stroke:#1565C0,stroke-width:2px,color:#000
+    style MW fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
+    style API fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
+    style LOGIC fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
+    style MEMORY fill:#66BB6A,stroke:#2E7D32,stroke-width:2px,color:#000
+    style FILES fill:#66BB6A,stroke:#2E7D32,stroke-width:2px,color:#000
+    style SEC fill:#EF5350,stroke:#C62828,stroke-width:2px,color:#000
+```
+
+### 상세 계층 구조
+
+#### 1️⃣ 클라이언트 계층
 ```mermaid
 graph TB
-    subgraph "클라이언트 계층"
-        User[👤 사용자]
-        Browser[🌐 웹 브라우저]
-        
-        subgraph "프론트엔드 페이지"
-            Landing[🏠 랜딩 페이지<br/>index.html]
-            Login[🔐 로그인<br/>login.html]
-            Signup[📝 회원가입<br/>signup.html]
-            Board[📋 게시판<br/>board.html]
-            PostDetail[📄 게시글 상세<br/>post-detail.html]
-            PostWrite[✍️글쓰기<br/>post-write.html]
-            Profile[👤 프로필<br/>profile.html]
-            AIAnalysis[🔬 AI 분석<br/>ai-analysis.html]
-            MyAnalyses[📊 분석 기록<br/>my-analyses.html]
-            AIResult[📈 분석 결과<br/>ai-result.html]
-        end
-        
-        CommonNav[🧭 공통 네비게이션<br/>common-nav.js]
-        LocalStorage[(💾 Local Storage<br/>JWT Token<br/>User Info)]
+    subgraph PAGES["프론트엔드 페이지"]
+        direction LR
+        AUTH["<b>인증</b><br/>로그인<br/>회원가입"]
+        BOARD["<b>게시판</b><br/>목록<br/>상세<br/>작성"]
+        AI["<b>AI 분석</b><br/>업로드<br/>설문<br/>결과"]
+        PROFILE["<b>프로필</b><br/>내정보<br/>내글<br/>내댓글"]
+    end
+    
+    NAV["<b>공통 네비게이션</b><br/>common-nav.js"]
+    STORAGE["<b>Local Storage</b><br/>JWT Token<br/>User Info"]
+    
+    NAV --> PAGES
+    PAGES --> STORAGE
+
+    style PAGES fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
+    style AUTH fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000
+    style BOARD fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000
+    style AI fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000
+    style PROFILE fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000
+    style NAV fill:#90CAF9,stroke:#1976D2,stroke-width:2px,color:#000
+    style STORAGE fill:#64B5F6,stroke:#1976D2,stroke-width:2px,color:#000
+```
+
+#### 2️⃣ 서버 계층
+```mermaid
+graph TB
+    subgraph MW["미들웨어"]
+        direction LR
+        AUTH_MW["<b>JWT 인증</b><br/>auth.js"]
+        RATE["<b>Rate Limiter</b><br/>분당 100회"]
+        VALID["<b>Validator</b><br/>입력값 검증"]
     end
 
-    subgraph "서버 계층"
-        Express[⚙️ Express Server<br/>:3000]
-        
-        subgraph "미들웨어"
-            AuthMW[🔒 JWT 인증<br/>auth.js]
-            RateLimiter[⏱️ Rate Limiter<br/>rateLimiter.js]
-            Validator[✅ express-validator]
-        end
-        
-        subgraph "API 라우터"
-            AuthAPI[🔑 인증 API<br/>/api/auth/*]
-            BoardAPI[📋 게시판 API<br/>/api/board/free/*]
-            AIAPI[🤖 AI 분석 API<br/>/api/ai/*]
-        end
-        
-        subgraph "비즈니스 로직"
-            UserLogic[👥 사용자 관리<br/>- 회원가입/로그인<br/>- 프로필 관리<br/>- 회원탈퇴]
-            BoardLogic[📝 게시판 관리<br/>- CRUD<br/>- 좋아요/댓글<br/>- 검색/필터링]
-            AILogic[🧠 AI 분석<br/>- 이미지 업로드<br/>- 설문조사<br/>- 분석 엔진]
-        end
+    subgraph API["API 라우터"]
+        direction LR
+        AUTH_API["<b>인증 API</b><br/>/api/auth/*"]
+        BOARD_API["<b>게시판 API</b><br/>/api/board/*"]
+        AI_API["<b>AI API</b><br/>/api/ai/*"]
     end
 
-    subgraph "데이터 계층"
-        InMemoryDB[(💾 In-Memory Storage<br/>⚠️ 서버 재시작시 초기화)]
-        FileSystem[📁 파일 시스템<br/>/backend/uploads/<br/>업로드된 이미지]
-        
-        subgraph "데이터 모델"
-            Users[👥 Users<br/>id, email, password,<br/>name, createdAt]
-            Posts[📝 Posts<br/>id, category, title,<br/>content, authorId, likes]
-            Comments[💬 Comments<br/>id, postId, content,<br/>authorId, createdAt]
-            Analyses[📊 AI Analyses<br/>id, userId, imageUrl,<br/>score, results]
-        end
+    subgraph LOGIC["비즈니스 로직"]
+        direction LR
+        USER_LOGIC["<b>사용자 관리</b><br/>회원가입<br/>로그인<br/>프로필"]
+        BOARD_LOGIC["<b>게시판 관리</b><br/>CRUD<br/>좋아요<br/>댓글"]
+        AI_LOGIC["<b>AI 분석</b><br/>이미지 업로드<br/>설문조사<br/>분석 엔진"]
     end
 
-    subgraph "보안 계층"
-        JWT[🔐 JWT<br/>jsonwebtoken]
-        Bcrypt[🔒 Bcrypt<br/>비밀번호 해싱]
-        Multer[📤 Multer<br/>파일 업로드<br/>최대 5MB]
+    MW --> API --> LOGIC
+
+    style MW fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
+    style API fill:#FFE0B2,stroke:#F57C00,stroke-width:2px,color:#000
+    style LOGIC fill:#FFCC80,stroke:#F57C00,stroke-width:2px,color:#000
+    
+    style AUTH_MW fill:#FFE082,stroke:#F57C00,stroke-width:2px,color:#000
+    style RATE fill:#FFE082,stroke:#F57C00,stroke-width:2px,color:#000
+    style VALID fill:#FFE082,stroke:#F57C00,stroke-width:2px,color:#000
+    style AUTH_API fill:#FFCA28,stroke:#F57C00,stroke-width:2px,color:#000
+    style BOARD_API fill:#FFCA28,stroke:#F57C00,stroke-width:2px,color:#000
+    style AI_API fill:#FFCA28,stroke:#F57C00,stroke-width:2px,color:#000
+    style USER_LOGIC fill:#FFB300,stroke:#F57C00,stroke-width:2px,color:#000
+    style BOARD_LOGIC fill:#FFB300,stroke:#F57C00,stroke-width:2px,color:#000
+    style AI_LOGIC fill:#FFB300,stroke:#F57C00,stroke-width:2px,color:#000
+```
+
+#### 3️⃣ 데이터 계층
+```mermaid
+graph TB
+    subgraph STORAGE["데이터 저장소"]
+        direction LR
+        MEMORY["<b>In-Memory DB</b><br/>⚠️ 서버 재시작시 초기화"]
+        FILES["<b>파일 시스템</b><br/>/backend/uploads/"]
     end
 
-    %% 사용자 흐름
-    User -->|접속| Browser
-    Browser -->|페이지 요청| Landing
-    Landing -->|회원가입| Signup
-    Landing -->|로그인| Login
-    Login -->|인증 후| Board
-    
-    %% 네비게이션
-    Browser -.->|모든 페이지| CommonNav
-    CommonNav -->|토큰 저장/조회| LocalStorage
-    
-    %% API 통신
-    Signup -->|POST /signup| AuthAPI
-    Login -->|POST /login| AuthAPI
-    Profile -->|GET/PUT/DELETE| AuthAPI
-    Board -->|GET /posts| BoardAPI
-    PostWrite -->|POST/PUT /posts| BoardAPI
-    PostDetail -->|GET/DELETE /posts/:id<br/>POST comments/likes| BoardAPI
-    AIAnalysis -->|POST /image-upload<br/>POST /survey| AIAPI
-    MyAnalyses -->|GET /my-analyses| AIAPI
-    AIResult -->|GET /analysis/:id| AIAPI
-    
-    %% 미들웨어 처리
-    AuthAPI -->|요청| RateLimiter
-    BoardAPI -->|요청| RateLimiter
-    AIAPI -->|요청| RateLimiter
-    
-    RateLimiter -->|검증| Validator
-    Validator -->|인증 필요| AuthMW
-    
-    AuthMW -->|JWT 검증| JWT
-    
-    %% 비즈니스 로직
-    AuthAPI --> UserLogic
-    BoardAPI --> BoardLogic
-    AIAPI --> AILogic
-    
-    %% 보안 처리
-    UserLogic -->|비밀번호 해싱| Bcrypt
-    UserLogic -->|토큰 생성| JWT
-    AILogic -->|이미지 처리| Multer
-    
-    %% 데이터 저장
-    UserLogic <-->|Read/Write| Users
-    BoardLogic <-->|Read/Write| Posts
-    BoardLogic <-->|Read/Write| Comments
-    AILogic <-->|Read/Write| Analyses
-    AILogic <-->|이미지 저장| FileSystem
-    
-    Users -.->|메모리| InMemoryDB
-    Posts -.->|메모리| InMemoryDB
-    Comments -.->|메모리| InMemoryDB
-    Analyses -.->|메모리| InMemoryDB
+    subgraph MODELS["데이터 모델"]
+        direction LR
+        USERS["<b>Users</b><br/>id, email<br/>password, name"]
+        POSTS["<b>Posts</b><br/>id, title<br/>content, likes"]
+        COMMENTS["<b>Comments</b><br/>id, postId<br/>content"]
+        ANALYSES["<b>Analyses</b><br/>id, userId<br/>score, results"]
+    end
 
-    %% 스타일
-    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef backend fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef middleware fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef data fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    classDef security fill:#ffebee,stroke:#c62828,stroke-width:2px
-    
-    class Landing,Login,Signup,Board,PostDetail,PostWrite,Profile,AIAnalysis,MyAnalyses,AIResult,CommonNav frontend
-    class Express,AuthAPI,BoardAPI,AIAPI,UserLogic,BoardLogic,AILogic backend
-    class AuthMW,RateLimiter,Validator middleware
-    class InMemoryDB,FileSystem,Users,Posts,Comments,Analyses data
-    class JWT,Bcrypt,Multer security
+    MODELS --> STORAGE
+
+    style STORAGE fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
+    style MODELS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+    style MEMORY fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
+    style FILES fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
+    style USERS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
+    style POSTS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
+    style COMMENTS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
+    style ANALYSES fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
+```
+
+#### 4️⃣ 보안 계층
+```mermaid
+graph LR
+    JWT["<b>JWT</b><br/>토큰 생성/검증<br/>만료시간: 24h"]
+    BCRYPT["<b>Bcrypt</b><br/>비밀번호 해싱<br/>10 salt rounds"]
+    MULTER["<b>Multer</b><br/>파일 업로드<br/>최대 5MB"]
+
+    style JWT fill:#FFCDD2,stroke:#C62828,stroke-width:2px,color:#000
+    style BCRYPT fill:#FFCDD2,stroke:#C62828,stroke-width:2px,color:#000
+    style MULTER fill:#FFCDD2,stroke:#C62828,stroke-width:2px,color:#000
 ```
 
 ## 주요 컴포넌트 설명
