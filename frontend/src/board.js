@@ -179,15 +179,10 @@ function renderPosts() {
 
         postList.innerHTML = posts.map(post => `
             <div class="post-item" onclick="window.location.href='/post-detail.html?id=${post.id}'">
-                <div class="post-header">
-                    ${post.likes > 10 ? '<span class="post-badge">공지</span>' : ''}
-                    <span class="post-tag">#피부분석</span>
-                    <span class="post-tag">#AI분석</span>
-                </div>
                 <div class="post-title">${escapeHtml(post.title)}</div>
                 <div class="post-meta">
                     <span>👤 ${escapeHtml(post.authorName)}</span>
-                    <span>👁 ${post.views || 0}</span>
+                    <span>조회수 ${post.views || 0}</span>
                     <span>❤️ ${post.likes || 0}</span>
                     <span>💬 ${post.commentCount || 0}</span>
                     <span>⏰ ${formatDate(post.createdAt)}</span>
