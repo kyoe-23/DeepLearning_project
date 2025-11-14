@@ -20,7 +20,7 @@ from sklearn.metrics import f1_score, precision_score, recall_score, classificat
 from tqdm import tqdm
 
 from dataset import get_data_loaders
-from train import ResNet50Classifier
+from train import ResNet50Classifier, EfficientNetB3Classifier
 
 
 class ModelEvaluator:
@@ -316,6 +316,7 @@ def main():
     parser.add_argument('--data_dir', type=str, required=True, help='전처리 데이터 디렉토리')
     parser.add_argument('--image_root', type=str, required=True, help='이미지 루트 디렉토리')
     parser.add_argument('--output_dir', type=str, default='./evaluation_results', help='결과 저장 디렉토리')
+    parser.add_argument('--model_type', type=str, default='efficientnet-b3', choices=['resnet50', 'efficientnet-b3'], help='모델 타입 선택')
     parser.add_argument('--batch_size', type=int, default=32, help='배치 크기')
     parser.add_argument('--num_workers', type=int, default=4, help='DataLoader 워커 수')
     parser.add_argument('--threshold', type=float, default=0.5, help='이진 분류 임계값')
@@ -344,7 +345,12 @@ def main():
 
     # 모델 생성
     print(f"[INFO] 모델 로드: {args.checkpoint}")
-    model = ResNet50Classifier(num_classes=num_classes, pretrained=False)
+    if args.model_type == 'resnet50':
+        model = ResNet50Classifier(num_classes=num_classes, pretrained=False)
+    elif args.model_type == 'efficientnet-b3':
+        model = EfficientNetB3Classifier(num_classes=num_classes, pretrained=False)
+    else:
+        raise ValueError(f"지원하지 않는 모델 타입: {args.model_type}")
 
     # 체크포인트 로드
     checkpoint = torch.load(args.checkpoint, map_location=device)

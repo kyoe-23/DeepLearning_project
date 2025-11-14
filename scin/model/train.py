@@ -15,6 +15,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import models
+from efficientnet_pytorch import EfficientNet
 from tqdm import tqdm
 
 from dataset import get_data_loaders
@@ -41,6 +42,38 @@ class ResNet50Classifier(nn.Module):
             nn.Dropout(p=dropout),
             nn.Linear(num_features, num_classes)
         )
+
+    def forward(self, x):
+        """
+        Args:
+            x: (B, 3, H, W) 이미지 텐서
+
+        Returns:
+            (B, num_classes) 로짓
+        """
+        return self.backbone(x)
+
+
+class EfficientNetB3Classifier(nn.Module):
+    """EfficientNet-B3 기반 다중 라벨 분류기"""
+
+    def __init__(self, num_classes, pretrained=True, dropout=0.5):
+        """
+        Args:
+            num_classes: 출력 클래스 수
+            pretrained: ImageNet pretrained 가중치 사용 여부
+            dropout: Dropout 비율
+        """
+        super(EfficientNetB3Classifier, self).__init__()
+
+        # EfficientNet-B3 백본
+        if pretrained:
+            self.backbone = EfficientNet.from_pretrained('efficientnet-b3', num_classes=num_classes)
+        else:
+            self.backbone = EfficientNet.from_name('efficientnet-b3', num_classes=num_classes)
+
+        # Dropout 설정 (EfficientNet 내부 dropout 오버라이드)
+        self.backbone._dropout = nn.Dropout(p=dropout)
 
     def forward(self, x):
         """
@@ -327,6 +360,7 @@ def main():
     parser.add_argument('--log_dir', type=str, default='../logs', help='TensorBoard 로그 디렉토리')
 
     # 모델 하이퍼파라미터
+    parser.add_argument('--model_type', type=str, default='efficientnet-b3', choices=['resnet50', 'efficientnet-b3'], help='모델 타입 선택')
     parser.add_argument('--pretrained', action='store_true', default=True, help='ImageNet pretrained 사용')
     parser.add_argument('--dropout', type=float, default=0.5, help='Dropout 비율')
 
@@ -338,7 +372,7 @@ def main():
     parser.add_argument('--patience', type=int, default=10, help='Early stopping patience')
 
     # DataLoader 설정
-    parser.add_argument('--num_workers', type=int, default=4, help='DataLoader 워커 수')
+    parser.add_argument('--num_workers', type=int, default=0, help='DataLoader 워커 수 (Apple Silicon은 0 권장)')
     parser.add_argument('--augment', action='store_true', default=True, help='데이터 증강 사용')
 
     # 체크포인트 재개
@@ -346,9 +380,18 @@ def main():
 
     args = parser.parse_args()
 
-    # 디바이스 설정
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"[INFO] 디바이스: {device}")
+    # 디바이스 설정 (Apple Silicon MPS 백엔드 우선 사용)
+    if torch.backends.mps.is_available():
+        device = torch.device('mps')
+        print(f"[INFO] 디바이스: MPS (Metal Performance Shaders) - Apple Silicon 최적화")
+    elif torch.cuda.is_available():
+        device = torch.device('cuda')
+        print(f"[INFO] 디바이스: CUDA")
+    else:
+        device = torch.device('cpu')
+        print(f"[WARN] 디바이스: CPU - 학습 속도가 매우 느릴 수 있습니다")
+
+    print(f"[INFO] 사용 중인 디바이스: {device}")
 
     # 메타데이터 로드
     with open(Path(args.data_dir) / 'metadata.json', 'r') as f:
@@ -367,12 +410,22 @@ def main():
     )
 
     # 모델 생성
-    print(f"\n[INFO] 모델 생성: ResNet50 (pretrained={args.pretrained})")
-    model = ResNet50Classifier(
-        num_classes=num_classes,
-        pretrained=args.pretrained,
-        dropout=args.dropout
-    )
+    if args.model_type == 'resnet50':
+        print(f"\n[INFO] 모델 생성: ResNet50 (pretrained={args.pretrained})")
+        model = ResNet50Classifier(
+            num_classes=num_classes,
+            pretrained=args.pretrained,
+            dropout=args.dropout
+        )
+    elif args.model_type == 'efficientnet-b3':
+        print(f"\n[INFO] 모델 생성: EfficientNet-B3 (pretrained={args.pretrained})")
+        model = EfficientNetB3Classifier(
+            num_classes=num_classes,
+            pretrained=args.pretrained,
+            dropout=args.dropout
+        )
+    else:
+        raise ValueError(f"지원하지 않는 모델 타입: {args.model_type}")
 
     # 손실 함수 (다중 라벨 분류)
     # 클래스 가중치 적용
@@ -409,6 +462,12 @@ def main():
 
         # 옵티마이저 상태 로드
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+        # 옵티마이저 내부 텐서를 현재 디바이스로 이동 (CPU→MPS 호환성)
+        for state in optimizer.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.to(device)
 
         # 스케줄러 상태 로드
         if checkpoint.get('scheduler_state_dict') and scheduler:

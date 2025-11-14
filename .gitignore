@@ -39,8 +39,11 @@ scin/data/scin_processed/
 
 # 학습 결과물 (체크포인트, 로그, 평가 결과)
 scin/checkpoints/
+scin/checkpoints_efficientnet
 scin/logs/
+scin/logs_efficientnet
 scin/model/evaluation_results/
+scin/model/evaluation_results_efficientnet
 
 # Python
 __pycache__/
