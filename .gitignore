@@ -31,3 +31,26 @@ build/
 
 #.md
 CLAUDE.md
+
+# SCIN 프로젝트 관련
+# 데이터 디렉토리 (다운로드/전처리된 데이터)
+scin/data/scin_dataset/
+scin/data/scin_processed/
+
+# 학습 결과물 (체크포인트, 로그, 평가 결과)
+scin/checkpoints/
+scin/logs/
+scin/model/evaluation_results/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+*.egg-info/
