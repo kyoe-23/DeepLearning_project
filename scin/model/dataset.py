@@ -69,8 +69,8 @@ class SCINDataset(Dataset):
         if self.augment:
             # 학습 시 증강 (EfficientNet-B3 최적 크기: 300x300)
             return transforms.Compose([
-                transforms.Resize((320, 320)),
-                transforms.RandomCrop((300, 300)),
+                transforms.Resize((256, 256)),
+                transforms.RandomCrop((224, 224)),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
                 transforms.RandomRotation(degrees=15),
@@ -83,7 +83,7 @@ class SCINDataset(Dataset):
         else:
             # 검증/테스트 시 (EfficientNet-B3 최적 크기: 300x300)
             return transforms.Compose([
-                transforms.Resize((224, 224)),
+                transforms.Resize((300, 300)),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=[0.485, 0.456, 0.406],
