@@ -297,10 +297,10 @@ python evaluate.py \
     --image_root ../data/scin_dataset \
     --output_dir ./evaluation_results_efficientnet \
     --batch_size 32 \
-    --threshold 0.5 \
+    --threshold 0.3 \
     --num_workers 0
 
-# ResNet50 평가 (레거시)
+# ResNet50 평가 (레거시, Recall 최적화)
 python evaluate.py \
     --model_type resnet50 \
     --checkpoint ../checkpoints/checkpoint_best.pth \
@@ -308,7 +308,7 @@ python evaluate.py \
     --image_root ../data/scin_dataset \
     --output_dir ./evaluation_results_resnet50 \
     --batch_size 32 \
-    --threshold 0.5 \
+    --threshold 0.3 \
     --num_workers 0
 ```
 
@@ -319,7 +319,10 @@ python evaluate.py \
 - `--image_root`: 원본 이미지 디렉토리
 - `--output_dir`: 평가 결과 저장 디렉토리 (기본값: ./evaluation_results)
 - `--batch_size`: 배치 크기 (기본값: 32)
-- `--threshold`: 이진 분류 임계값 (기본값: 0.5)
+- `--threshold`: 이진 분류 임계값 (다중 라벨 예측 민감도 조정)
+  - **0.3 (권장)**: Recall 향상, F1-Score 최적화 - 예측 가능 클래스 증가
+  - **0.2**: Recall 극대화 (Precision 저하 가능)
+  - **0.5 (기본)**: Precision 우선, 보수적 예측
 - `--num_workers`: DataLoader 워커 수 (Apple Silicon: 0, 기본값: 4)
 
 **출력 파일**:
