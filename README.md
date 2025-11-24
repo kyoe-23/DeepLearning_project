@@ -602,9 +602,5 @@ curl -X POST http://localhost:3000/api/auth/signup \
 - ✅ Rate Limiting
 - ✅ 파일 업로드 (이미지)
 
-## 라이선스
-
-ISC License - 자유롭게 사용, 수정, 배포 가능합니다.
-
 ---
 
