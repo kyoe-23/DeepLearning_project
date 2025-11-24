@@ -146,8 +146,8 @@
             <ul class="nav-menu">
                 <li><a href="index.html">홈</a></li>
                 <li><a href="signup.html">회원가입</a></li>
-                <li><a href="ai-analysis.html">업로드</a></li>
-                <li><a href="my-analyses.html" class="active">결과보기</a></li>
+                <li><a href="ai-analysis.html">SKINAI</a></li>
+                <li><a href="my-analyses.html" class="active">My skin</a></li>
                 <li><a href="board.html">커뮤니티</a></li>
             </ul>
             <div class="nav-user" id="nav-user-section">
@@ -263,7 +263,6 @@
                     </div>
                     <div class="analysis-info">
                         <div class="analysis-date">${formatDate(analysis.createdAt)}</div>
-                        <div class="analysis-score">${analysis.overallScore || 0}점</div>
                         <div class="analysis-result">피부 타입: ${escapeHtml(analysis.skinType || '분석 중')}</div>
                     </div>
                 `;

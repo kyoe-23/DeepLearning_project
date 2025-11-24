@@ -43,6 +43,22 @@
             font-weight: 600;
         }
 
+        /* OOD 경고 배너 */
+        .ood-warning-banner {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%);
+            border: 3px solid #ffc107;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 24px rgba(255, 152, 0, 0.25);
+            text-align: center;
+        }
+
+        .ood-warning-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
         /* 메인 레이아웃 */
         .result-main {
             display: grid;
@@ -178,27 +194,6 @@
             transition: width 1s ease;
         }
 
-        .ai-reliability {
-            background: #e8f5e9;
-            border-radius: 8px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .ai-reliability-icon {
-            font-size: 20px;
-        }
-
-        .ai-reliability-text {
-            flex: 1;
-            font-size: 14px;
-            color: #2e7d32;
-            font-weight: 600;
-        }
-
         /* 상위 예측 결과 */
         .top-predictions {
             background: white;
@@ -295,8 +290,8 @@
             <ul class="nav-menu">
                 <li><a href="index.html">홈</a></li>
                 <li><a href="signup.html">회원가입</a></li>
-                <li><a href="ai-analysis.html">업로드</a></li>
-                <li><a href="my-analyses.html">결과보기</a></li>
+                <li><a href="ai-analysis.html">SKINAI</a></li>
+                <li><a href="my-analyses.html">My skin</a></li>
                 <li><a href="board.html">커뮤니티</a></li>
             </ul>
             <div class="nav-user" id="nav-user-section">
@@ -309,12 +304,21 @@
     <div class="result-container">
         <div id="message-box" class="message" style="display: none;"></div>
 
-        <!-- 의료 면책 고지 -->
-        <div class="disclaimer-banner">
-            <div class="disclaimer-icon">⚠️</div>
-            <div class="disclaimer-text">
-                <strong>의료 면책 고지:</strong>
-                이 분석 결과는 참고용이며, 의학적 진단을 대체할 수 없습니다. 정확한 진단과 치료는 반드시 전문의와 상담하시기 바랍니다.
+        <!-- OOD 경고 배너 (낮은 신뢰도 또는 피부 사진이 아닐 때) -->
+        <div id="ood-warning-banner" class="ood-warning-banner" style="display: none;">
+            <div class="ood-warning-content">
+                <div class="ood-warning-title" style="font-size: 20px; font-weight: 700; color: #d32f2f; margin-bottom: 12px;">
+                    경고: 피부 사진이 아닐 수 있습니다
+                </div>
+                <div class="ood-warning-message" style="font-size: 16px; color: #666; line-height: 1.6; margin-bottom: 20px;">
+                    <strong>피부 질환이 아닌 이미지</strong>를 업로드하셨을 가능성이 높습니다.<br>
+                    정확한 분석을 위해 <strong>피부 사진을 다시 업로드</strong>해주세요.
+                </div>
+                <div class="ood-warning-actions">
+                    <a href="ai-analysis.html" class="btn btn-primary" style="text-decoration: none;">
+                        📷 새 피부 사진 업로드
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -323,7 +327,7 @@
             <!-- 왼쪽: 분석 대상 이미지 -->
             <div class="result-image-section">
                 <div class="section-header">
-                    <h3 class="section-title">🎯 분석 대상 이미지</h3>
+                    <h3 class="section-title">분석 대상 이미지</h3>
                     <span class="status-badge">분석 완료</span>
                 </div>
                 <div class="result-image-container">
@@ -334,14 +338,11 @@
             <!-- 오른쪽: 최근 진단 예측 -->
             <div class="result-prediction-section">
                 <div class="prediction-header">
-                    <h2 class="prediction-title">최근 진단 예측</h2>
-                    <p class="prediction-subtitle">
-                        업로드하신 이미지에 대한 AI 분석이 완료되었습니다. 아래 결과를 참고하여 적절한 조치를 취하세요.
-                    </p>
+                    <h2 class="prediction-title">NEW SKINAI</h2>
                 </div>
 
                 <div class="diagnosis-result">
-                    <div class="diagnosis-label">양성 색소성 모반</div>
+                    <div class="diagnosis-label">SKINAI의 예측 결과</div>
                     <div class="diagnosis-value" id="diagnosis-name">진단 결과를 불러오는 중...</div>
 
                     <div class="diagnosis-bar">
@@ -355,9 +356,13 @@
                     </div>
                 </div>
 
-                <div class="ai-reliability">
-                    <span class="ai-reliability-icon">💡</span>
-                    <span class="ai-reliability-text">AI가 가장 가능성이 높다고 판단한 결과입니다</span>
+                <!-- 의료 면책 고지 -->
+                <div class="disclaimer-banner">
+                    <div class="disclaimer-icon">⚠️</div>
+                    <div class="disclaimer-text">
+                        <strong>의료 면책 고지:</strong>
+                        이 분석 결과는 참고용이며, 정확한 진단과 치료는 반드시 전문의와 상담하시기 바랍니다.
+                    </div>
                 </div>
             </div>
         </div>
@@ -419,33 +424,119 @@
 
         // 분석 결과 표시
         function displayAnalysisResult(analysis) {
+            console.log('[DEBUG] 분석 결과:', analysis);
+
             // 이미지 표시
-            document.getElementById('result-image').src = `/uploads/${analysis.imageFilename}`;
+            const imageFilename = analysis.imageFilename || analysis.surveyId?.imageFilename;
+            if (imageFilename) {
+                document.getElementById('result-image').src = `/uploads/${imageFilename}`;
+            }
+
+            // OOD(Out-of-Distribution) 검출: is_ood 플래그 또는 낮은 신뢰도 확인
+            let isOOD = false;
+            if (analysis.predictions && analysis.predictions.length > 0) {
+                const firstPred = analysis.predictions[0];
+                const actualConfidence = (firstPred.confidence || 0) * 100;
+
+                // is_ood 플래그가 true이거나, 실제 신뢰도가 40% 미만일 때
+                isOOD = firstPred.is_ood === true || actualConfidence < 40;
+            }
+
+            // OOD 경고 배너 표시/숨김
+            const oodBanner = document.getElementById('ood-warning-banner');
+            if (isOOD) {
+                oodBanner.style.display = 'block';
+                console.log('[WARNING] OOD 검출됨 - 피부 사진이 아닐 가능성 높음');
+            } else {
+                oodBanner.style.display = 'none';
+            }
+
+            // AI 예측 결과 사용 (우선순위: AI predictions > skinType)
+            let topDisease = '분석 결과 없음';
+            let topConfidence = 0;
+
+            if (analysis.predictions && analysis.predictions.length > 0) {
+                // AI 예측 결과가 있는 경우 - 한국어 우선 표시
+                const firstPred = analysis.predictions[0];
+                topDisease = firstPred.disease_ko || firstPred.disease || analysis.topDisease;
+
+                // 실제 신뢰도 그대로 표시 (인위적 상향 제거)
+                const actualConfidence = (firstPred.confidence || analysis.overallConfidence || 0) * 100;
+                topConfidence = Math.round(actualConfidence);
+            } else if (analysis.topDisease) {
+                // AI 예측 결과만 있는 경우
+                topDisease = analysis.topDisease;
+                const actualConfidence = (analysis.overallConfidence || 0) * 100;
+                topConfidence = Math.round(actualConfidence);
+            } else if (analysis.skinType) {
+                // 설문 기반 결과만 있는 경우 (Fallback)
+                topDisease = `${analysis.skinType} 피부 (설문 기반)`;
+                topConfidence = analysis.score || 70;
+            }
 
             // 진단명 표시
-            document.getElementById('diagnosis-name').textContent = analysis.skinType || '양성 색소성 모반';
+            document.getElementById('diagnosis-name').textContent = topDisease;
 
             // 신뢰도 표시
-            const confidence = analysis.totalScore || 65;
-            document.getElementById('confidence-value').textContent = `${confidence}%`;
-            document.getElementById('confidence-bar').style.width = `${confidence}%`;
+            document.getElementById('confidence-value').textContent = `${topConfidence}%`;
+            document.getElementById('confidence-bar').style.width = `${topConfidence}%`;
 
-            // Top 5 예측 결과 표시 (임시 데이터)
-            const predictions = [
-                { name: '양성 색소성 모반', score: confidence },
-                { name: '지루각화증', score: Math.max(0, confidence - 10) },
-                { name: '피부섬유종', score: Math.max(0, confidence - 20) },
-                { name: '혈관종', score: Math.max(0, confidence - 30) },
-                { name: '기타 병변', score: Math.max(0, confidence - 40) }
-            ];
-
+            // Top 5 예측 결과 표시 (실제 AI 데이터 사용)
             const predictionsList = document.getElementById('predictions-list');
-            predictionsList.innerHTML = predictions.map(pred => `
-                <div class="prediction-item">
-                    <span class="prediction-name">${pred.name}</span>
-                    <span class="prediction-score">${pred.score}%</span>
-                </div>
-            `).join('');
+
+            if (analysis.predictions && analysis.predictions.length > 0) {
+                // AI 예측 결과가 있는 경우
+                const top5 = analysis.predictions.slice(0, 5);
+
+                predictionsList.innerHTML = top5.map((pred, index) => {
+                    // 실제 신뢰도를 그대로 표시 (스케일링 제거)
+                    const actualConfidence = (pred.confidence || 0) * 100;
+                    const displayConfidence = Math.round(actualConfidence);
+
+                    // 한국어 우선 표시: "한국어 (English)"
+                    const koreanName = pred.disease_ko || pred.disease;
+                    const englishName = pred.disease;
+                    const displayName = pred.disease_ko
+                        ? `${koreanName} (${englishName})`
+                        : englishName;
+
+                    return `
+                        <div class="prediction-item">
+                            <span class="prediction-name">${index + 1}. ${displayName}</span>
+                            <span class="prediction-score">${displayConfidence}%</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                // Fallback: 설문 기반 결과
+                predictionsList.innerHTML = `
+                    <div class="prediction-item" style="background: #fff9e6; padding: 20px; border-radius: 8px;">
+                        <p style="margin: 0; color: #666; font-size: 14px;">
+                            설문 기반 분석 결과가 표시됩니다.<br>
+                            정확한 진단을 위해 피부과 전문의 상담을 권장합니다.
+                        </p>
+                    </div>
+                `;
+            }
+
+            // 설문 데이터 및 추천 사항 표시 (선택적)
+            displayAdditionalInfo(analysis);
+        }
+
+        // 추가 정보 표시 (설문 데이터, 추천 사항)
+        function displayAdditionalInfo(analysis) {
+            // 이 부분은 향후 UI 확장 시 사용
+            if (analysis.recommendations) {
+                console.log('[INFO] 추천 사항:', analysis.recommendations);
+            }
+
+            if (analysis.summary || analysis.aiSummary) {
+                console.log('[INFO] 요약:', analysis.summary || analysis.aiSummary);
+            }
+
+            if (analysis.skinType || analysis.concerns) {
+                console.log('[INFO] 설문 데이터 - 피부 타입:', analysis.skinType, '고민:', analysis.concerns);
+            }
         }
 
         // 버튼 이벤트

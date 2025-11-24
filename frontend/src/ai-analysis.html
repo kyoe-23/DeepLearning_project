@@ -255,8 +255,8 @@
             <ul class="nav-menu">
                 <li><a href="index.html">홈</a></li>
                 <li><a href="signup.html">회원가입</a></li>
-                <li><a href="ai-analysis.html" class="active">업로드</a></li>
-                <li><a href="my-analyses.html">결과보기</a></li>
+                <li><a href="ai-analysis.html" class="active">SKINAI</a></li>
+                <li><a href="my-analyses.html">My skin</a></li>
                 <li><a href="board.html">커뮤니티</a></li>
             </ul>
             <div class="nav-user" id="nav-user-section">
@@ -278,13 +278,19 @@
         <div id="step-1" class="step-container">
             <div class="step-header">
                 <div class="step-number">1</div>
-                <div class="step-title">얼굴 사진 업로드</div>
+                <div class="step-title">피부 사진 업로드</div>
             </div>
 
             <div class="upload-area" id="upload-area">
                 <div class="upload-icon">📷</div>
-                <div class="upload-text">이미지를 여기에 드래그하거나 클릭하여 업로드하세요</div>
-                <div class="upload-hint">JPG, PNG 형식 | 최대 10MB</div>
+                <div class="upload-text"><strong>피부 사진만 업로드하세요</strong></div>
+                <div class="upload-description" style="color: #666; margin: 10px 0; font-size: 14px;">
+                    얼굴, 팔, 다리 등의 피부 사진을 업로드해주세요
+                </div>
+                <div class="upload-hint">JPG, PNG 형식 | 최대 5MB</div>
+                <div class="upload-warning" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px; margin-top: 15px; font-size: 13px;">
+                    <strong>⚠️ 주의:</strong> 예술 작품, 일반 사진, 풍경 사진은 정확한 분석이 불가능합니다
+                </div>
                 <input type="file" id="image-input" accept="image/jpeg,image/png" style="display: none;">
             </div>
 
