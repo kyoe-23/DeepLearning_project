@@ -29,6 +29,9 @@ scin/
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
+# out of venv
+deactivate
+
 # 의존성 설치
 cd scin/model
 pip install -r requirements.txt
@@ -165,7 +168,7 @@ python train.py \
     --checkpoint_dir ../checkpoints \
     --log_dir ../logs \
     --batch_size 16 \
-    --num_epochs 50 \
+    --num_epochs 100 \
     --lr 0.0001 \
     --weight_decay 1e-3 \
     --dropout 0.6 \
