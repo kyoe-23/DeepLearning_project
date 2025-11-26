@@ -1,13 +1,14 @@
 """
-SCIN 모델 평가 스크립트
+SCIN 모델 평가 스크립트 - EfficientNet-B3
 
-학습된 모델의 성능을 평가하고 시각화합니다.
+학습된 EfficientNet-B3 모델의 성능을 평가하고 시각화합니다.
 - Top-1, Top-3, Top-5 Accuracy
 - Per-class F1-Score
 - 혼동 행렬
 """
 
 import os
+import sys
 import json
 import argparse
 from pathlib import Path
@@ -19,8 +20,10 @@ import torch.nn as nn
 from sklearn.metrics import f1_score, precision_score, recall_score, classification_report
 from tqdm import tqdm
 
+# 상위 디렉토리에서 dataset import
+sys.path.append(str(Path(__file__).parent.parent))
 from dataset import get_data_loaders
-from train import ResNet50Classifier, EfficientNetB3Classifier
+from model import EfficientNetB3Classifier
 
 
 class ModelEvaluator:
@@ -56,7 +59,7 @@ class ModelEvaluator:
             dict: 평가 결과
         """
         print(f"\n{'='*60}")
-        print("모델 평가 시작")
+        print("모델 평가 시작 - EfficientNet-B3")
         print(f"{'='*60}\n")
 
         self.model.eval()
@@ -223,7 +226,7 @@ class ModelEvaluator:
         plt.barh(class_names, f1_scores, color='skyblue')
         plt.xlabel('F1-Score', fontsize=12)
         plt.ylabel('Disease Class', fontsize=12)
-        plt.title('Per-Class F1-Score (Top 20)', fontsize=14)
+        plt.title('Per-Class F1-Score (Top 20) - EfficientNet-B3', fontsize=14)
         plt.xlim(0, 1)
         plt.grid(axis='x', alpha=0.3)
         plt.tight_layout()
@@ -311,21 +314,27 @@ class ModelEvaluator:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='SCIN 모델 평가')
+    parser = argparse.ArgumentParser(description='SCIN 모델 평가 - EfficientNet-B3')
     parser.add_argument('--checkpoint', type=str, required=True, help='모델 체크포인트 경로')
     parser.add_argument('--data_dir', type=str, required=True, help='전처리 데이터 디렉토리')
     parser.add_argument('--image_root', type=str, required=True, help='이미지 루트 디렉토리')
     parser.add_argument('--output_dir', type=str, default='./evaluation_results', help='결과 저장 디렉토리')
-    parser.add_argument('--model_type', type=str, default='efficientnet-b3', choices=['resnet50', 'efficientnet-b3'], help='모델 타입 선택')
     parser.add_argument('--batch_size', type=int, default=32, help='배치 크기')
     parser.add_argument('--num_workers', type=int, default=4, help='DataLoader 워커 수')
     parser.add_argument('--threshold', type=float, default=0.5, help='이진 분류 임계값')
 
     args = parser.parse_args()
 
-    # 디바이스 설정
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"[INFO] 디바이스: {device}")
+    # 디바이스 설정 (Apple Silicon MPS 백엔드 우선 사용)
+    if torch.backends.mps.is_available():
+        device = torch.device('mps')
+        print(f"[INFO] 디바이스: MPS (Metal Performance Shaders) - Apple Silicon 최적화")
+    elif torch.cuda.is_available():
+        device = torch.device('cuda')
+        print(f"[INFO] 디바이스: CUDA")
+    else:
+        device = torch.device('cpu')
+        print(f"[INFO] 디바이스: CPU")
 
     # 메타데이터 로드
     with open(Path(args.data_dir) / 'metadata.json', 'r') as f:
@@ -343,14 +352,9 @@ def main():
         augment=False
     )
 
-    # 모델 생성
+    # 모델 생성 (EfficientNet-B3)
     print(f"[INFO] 모델 로드: {args.checkpoint}")
-    if args.model_type == 'resnet50':
-        model = ResNet50Classifier(num_classes=num_classes, pretrained=False)
-    elif args.model_type == 'efficientnet-b3':
-        model = EfficientNetB3Classifier(num_classes=num_classes, pretrained=False)
-    else:
-        raise ValueError(f"지원하지 않는 모델 타입: {args.model_type}")
+    model = EfficientNetB3Classifier(num_classes=num_classes, pretrained=False)
 
     # 체크포인트 로드
     checkpoint = torch.load(args.checkpoint, map_location=device)

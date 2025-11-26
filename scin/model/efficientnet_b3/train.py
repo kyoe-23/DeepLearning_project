@@ -1,10 +1,11 @@
 """
-SCIN 피부 질환 분류 모델 학습 스크립트
+SCIN 피부 질환 분류 모델 학습 스크립트 - EfficientNet-B3
 
-ResNet50 전이 학습 - 다중 라벨 분류
+EfficientNet-B3 전이 학습 - 다중 라벨 분류
 """
 
 import os
+import sys
 import json
 import argparse
 from pathlib import Path
@@ -14,76 +15,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
-from torchvision import models
-from efficientnet_pytorch import EfficientNet
 from tqdm import tqdm
 
+# 상위 디렉토리에서 dataset import
+sys.path.append(str(Path(__file__).parent.parent))
 from dataset import get_data_loaders
-
-
-class ResNet50Classifier(nn.Module):
-    """ResNet50 기반 다중 라벨 분류기"""
-
-    def __init__(self, num_classes, pretrained=True, dropout=0.5):
-        """
-        Args:
-            num_classes: 출력 클래스 수
-            pretrained: ImageNet pretrained 가중치 사용 여부
-            dropout: Dropout 비율
-        """
-        super(ResNet50Classifier, self).__init__()
-
-        # ResNet50 백본
-        self.backbone = models.resnet50(pretrained=pretrained)
-
-        # 마지막 FC 레이어 교체
-        num_features = self.backbone.fc.in_features
-        self.backbone.fc = nn.Sequential(
-            nn.Dropout(p=dropout),
-            nn.Linear(num_features, num_classes)
-        )
-
-    def forward(self, x):
-        """
-        Args:
-            x: (B, 3, H, W) 이미지 텐서
-
-        Returns:
-            (B, num_classes) 로짓
-        """
-        return self.backbone(x)
-
-
-class EfficientNetB3Classifier(nn.Module):
-    """EfficientNet-B3 기반 다중 라벨 분류기"""
-
-    def __init__(self, num_classes, pretrained=True, dropout=0.5):
-        """
-        Args:
-            num_classes: 출력 클래스 수
-            pretrained: ImageNet pretrained 가중치 사용 여부
-            dropout: Dropout 비율
-        """
-        super(EfficientNetB3Classifier, self).__init__()
-
-        # EfficientNet-B3 백본
-        if pretrained:
-            self.backbone = EfficientNet.from_pretrained('efficientnet-b3', num_classes=num_classes)
-        else:
-            self.backbone = EfficientNet.from_name('efficientnet-b3', num_classes=num_classes)
-
-        # Dropout 설정 (EfficientNet 내부 dropout 오버라이드)
-        self.backbone._dropout = nn.Dropout(p=dropout)
-
-    def forward(self, x):
-        """
-        Args:
-            x: (B, 3, H, W) 이미지 텐서
-
-        Returns:
-            (B, num_classes) 로짓
-        """
-        return self.backbone(x)
+from model import EfficientNetB3Classifier
 
 
 class Trainer:
@@ -296,7 +233,7 @@ class Trainer:
             num_epochs: 총 에포크 수
         """
         print(f"\n{'='*60}")
-        print(f"학습 시작")
+        print(f"학습 시작 - EfficientNet-B3")
         print(f"{'='*60}")
         print(f"디바이스: {self.device}")
         print(f"시작 에포크: {self.start_epoch}")
@@ -353,14 +290,13 @@ class Trainer:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='SCIN 모델 학습')
+    parser = argparse.ArgumentParser(description='SCIN 모델 학습 - EfficientNet-B3')
     parser.add_argument('--data_dir', type=str, required=True, help='전처리 데이터 디렉토리')
     parser.add_argument('--image_root', type=str, required=True, help='이미지 루트 디렉토리')
-    parser.add_argument('--checkpoint_dir', type=str, default='../checkpoints', help='체크포인트 저장 디렉토리')
-    parser.add_argument('--log_dir', type=str, default='../logs', help='TensorBoard 로그 디렉토리')
+    parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints', help='체크포인트 저장 디렉토리')
+    parser.add_argument('--log_dir', type=str, default='./logs', help='TensorBoard 로그 디렉토리')
 
     # 모델 하이퍼파라미터
-    parser.add_argument('--model_type', type=str, default='efficientnet-b3', choices=['resnet50', 'efficientnet-b3'], help='모델 타입 선택')
     parser.add_argument('--pretrained', action='store_true', default=True, help='ImageNet pretrained 사용')
     parser.add_argument('--dropout', type=float, default=0.5, help='Dropout 비율')
 
@@ -409,23 +345,13 @@ def main():
         augment=args.augment
     )
 
-    # 모델 생성
-    if args.model_type == 'resnet50':
-        print(f"\n[INFO] 모델 생성: ResNet50 (pretrained={args.pretrained})")
-        model = ResNet50Classifier(
-            num_classes=num_classes,
-            pretrained=args.pretrained,
-            dropout=args.dropout
-        )
-    elif args.model_type == 'efficientnet-b3':
-        print(f"\n[INFO] 모델 생성: EfficientNet-B3 (pretrained={args.pretrained})")
-        model = EfficientNetB3Classifier(
-            num_classes=num_classes,
-            pretrained=args.pretrained,
-            dropout=args.dropout
-        )
-    else:
-        raise ValueError(f"지원하지 않는 모델 타입: {args.model_type}")
+    # 모델 생성 (EfficientNet-B3)
+    print(f"\n[INFO] 모델 생성: EfficientNet-B3 (pretrained={args.pretrained})")
+    model = EfficientNetB3Classifier(
+        num_classes=num_classes,
+        pretrained=args.pretrained,
+        dropout=args.dropout
+    )
 
     # 손실 함수 (다중 라벨 분류)
     # 클래스 가중치 적용

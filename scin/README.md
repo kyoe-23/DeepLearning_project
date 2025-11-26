@@ -10,14 +10,26 @@ scin/
 │   ├── download.py          # GCS 데이터 다운로드
 │   └── preprocess.py        # 데이터 전처리 및 분할
 ├── model/                   # 모델 학습 및 평가
-│   ├── dataset.py          # PyTorch Dataset 클래스
-│   ├── train.py            # ResNet50 학습 스크립트
-│   ├── evaluate.py         # 모델 평가 스크립트
-│   └── requirements.txt    # Python 의존성
+│   ├── dataset.py          # PyTorch Dataset 클래스 (공통)
+│   ├── requirements.txt    # Python 의존성 (공통)
+│   ├── resnet50/           # ResNet50 모델
+│   │   ├── model.py        # ResNet50Classifier
+│   │   ├── train.py        # 학습 스크립트
+│   │   ├── evaluate.py     # 평가 스크립트
+│   │   ├── README.md       # ResNet50 문서
+│   │   ├── checkpoints/    # 체크포인트 저장
+│   │   └── logs/           # TensorBoard 로그
+│   ├── efficientnet_b3/    # EfficientNet-B3 모델 (권장)
+│   │   ├── model.py        # EfficientNetB3Classifier
+│   │   ├── train.py        # 학습 스크립트
+│   │   ├── evaluate.py     # 평가 스크립트
+│   │   ├── README.md       # EfficientNet-B3 문서
+│   │   ├── checkpoints/    # 체크포인트 저장
+│   │   └── logs/           # TensorBoard 로그
+│   ├── train.py (deprecated) # 통합 학습 스크립트 (레거시)
+│   └── evaluate.py (deprecated) # 통합 평가 스크립트 (레거시)
 ├── notebooks/              # Jupyter 노트북
 │   └── scin_demo.ipynb     # SCIN 데이터셋 탐색
-├── checkpoints/            # 학습된 모델 체크포인트
-└── logs/                   # TensorBoard 로그
 ```
 
 ## 🚀 빠른 시작
@@ -142,16 +154,16 @@ python preprocess.py \
 
 #### 기본 학습 (처음부터 시작)
 
-```bash
-cd scin/model
+**EfficientNet-B3 학습 (권장 - 발열 감소, 성능 향상)**
 
-# EfficientNet-B3 학습 (권장 - 발열 감소, 성능 향상)
+```bash
+cd scin/model/efficientnet_b3
+
 python train.py \
-    --model_type efficientnet-b3 \
-    --data_dir ../data/scin_processed \
-    --image_root ../data/scin_dataset \
-    --checkpoint_dir ../checkpoints_efficientnet \
-    --log_dir ../logs_efficientnet \
+    --data_dir ../../data/scin_processed \
+    --image_root ../../data/SCIN \
+    --checkpoint_dir ./checkpoints \
+    --log_dir ./logs \
     --batch_size 16 \
     --num_epochs 60 \
     --lr 0.001 \
@@ -159,14 +171,18 @@ python train.py \
     --dropout 0.2 \
     --patience 15 \
     --num_workers 0
+```
 
-# ResNet50 학습 (레거시)
+**ResNet50 학습 (레거시)**
+
+```bash
+cd scin/model/resnet50
+
 python train.py \
-    --model_type resnet50 \
-    --data_dir ../data/scin_processed \
-    --image_root ../data/scin_dataset \
-    --checkpoint_dir ../checkpoints \
-    --log_dir ../logs \
+    --data_dir ../../data/scin_processed \
+    --image_root ../../data/SCIN \
+    --checkpoint_dir ./checkpoints \
+    --log_dir ./logs \
     --batch_size 16 \
     --num_epochs 100 \
     --lr 0.0001 \
@@ -178,33 +194,37 @@ python train.py \
 
 #### 체크포인트에서 학습 재개
 
-```bash
-cd scin/model
+**EfficientNet-B3 재개 (권장)**
 
-# EfficientNet-B3 재개 (권장)
+```bash
+cd scin/model/efficientnet_b3
+
 python train.py \
-    --model_type efficientnet-b3 \
-    --data_dir ../data/scin_processed \
-    --image_root ../data/scin_dataset \
-    --checkpoint_dir ../checkpoints_efficientnet \
-    --log_dir ../logs_efficientnet \
-    --resume ../checkpoints_efficientnet/checkpoint_latest.pth \
+    --data_dir ../../data/scin_processed \
+    --image_root ../../data/SCIN \
+    --checkpoint_dir ./checkpoints \
+    --log_dir ./logs \
+    --resume ./checkpoints/checkpoint_latest.pth \
     --batch_size 16 \
-    --num_epochs 50 \
-    --lr 0.0001 \
-    --weight_decay 1e-3 \
-    --dropout 0.5 \
+    --num_epochs 60 \
+    --lr 0.001 \
+    --weight_decay 1e-4 \
+    --dropout 0.2 \
     --patience 15 \
     --num_workers 0
+```
 
-# ResNet50 재개 (레거시)
+**ResNet50 재개 (레거시)**
+
+```bash
+cd scin/model/resnet50
+
 python train.py \
-    --model_type resnet50 \
-    --data_dir ../data/scin_processed \
-    --image_root ../data/scin_dataset \
-    --checkpoint_dir ../checkpoints \
-    --log_dir ../logs \
-    --resume ../checkpoints/checkpoint_latest.pth \
+    --data_dir ../../data/scin_processed \
+    --image_root ../../data/SCIN \
+    --checkpoint_dir ./checkpoints \
+    --log_dir ./logs \
+    --resume ./checkpoints/checkpoint_latest.pth \
     --batch_size 16 \
     --num_epochs 100 \
     --lr 0.0001 \
@@ -215,44 +235,47 @@ python train.py \
 ```
 
 **주요 학습 파라미터**:
-- `--model_type`: 모델 선택 (`efficientnet-b3` 권장, `resnet50` 레거시, 기본값: efficientnet-b3)
 - `--data_dir`: 전처리된 데이터 디렉토리
-- `--image_root`: 원본 이미지 디렉토리 (dataset/images/)
+- `--image_root`: 원본 이미지 디렉토리
+- `--checkpoint_dir`: 체크포인트 저장 디렉토리
+- `--log_dir`: TensorBoard 로그 디렉토리
 - `--batch_size`: 배치 크기 (권장: 16, 기본값: 32)
 - `--num_epochs`: 총 에포크 수 (기본값: 50)
-- `--lr`: Learning rate (권장: 0.0001, 기본값: 0.001)
-- `--weight_decay`: L2 정규화 강도 (권장: 1e-3, 기본값: 1e-4)
-- `--dropout`: Dropout 비율 (EfficientNet-B3: 0.5, ResNet50: 0.6, 기본값: 0.5)
+- `--lr`: Learning rate (EfficientNet-B3: 0.001, ResNet50: 0.0001, 기본값: 0.001)
+- `--weight_decay`: L2 정규화 강도 (EfficientNet-B3: 1e-4, ResNet50: 1e-3, 기본값: 1e-4)
+- `--dropout`: Dropout 비율 (EfficientNet-B3: 0.2, ResNet50: 0.6, 기본값: 0.5)
 - `--patience`: Early stopping patience (권장: 15, 기본값: 10)
-- `--num_workers`: DataLoader 워커 수 (Apple Silicon: 0, 기본값: 4)
+- `--num_workers`: DataLoader 워커 수 (Apple Silicon: 0, 기본값: 0)
 - `--resume`: 체크포인트 경로 (학습 재개 시 사용)
 
-**하이퍼파라미터 권장 설정** (과적합 방지 및 학습 안정성 향상):
-- `--batch_size 16`: 작은 배치로 더 많은 그래디언트 업데이트
-- `--lr 0.0001`: 낮은 학습률로 안정적인 학습
-- `--weight_decay 1e-3`: 강한 L2 정규화로 과적합 방지
-- `--dropout 0.6`: 높은 드롭아웃으로 일반화 성능 향상
-- `--patience 15`: 충분한 수렴 시간 제공
+**모델별 권장 설정**:
+- **EfficientNet-B3**: `--lr 0.001 --weight_decay 1e-4 --dropout 0.2 --num_epochs 60`
+- **ResNet50**: `--lr 0.0001 --weight_decay 1e-3 --dropout 0.6 --num_epochs 100`
+
+자세한 내용은 각 모델의 README를 참조하세요:
+- [EfficientNet-B3 README](model/efficientnet_b3/README.md)
+- [ResNet50 README](model/resnet50/README.md)
 
 **학습 모니터링 (TensorBoard)**:
 
 ```bash
 # 새 터미널에서 실행
 # EfficientNet-B3 모니터링 (권장)
-cd scin
-python3 -m tensorboard.main --logdir logs_efficientnet
+cd scin/model/efficientnet_b3
+python3 -m tensorboard.main --logdir logs
 # 브라우저에서 http://localhost:6006 접속
 
 # ResNet50 모니터링 (레거시)
-cd scin
+cd scin/model/resnet50
 python3 -m tensorboard.main --logdir logs
 # 브라우저에서 http://localhost:6006 접속
 
 # 두 모델 동시 비교 (권장 - 성능 비교 시)
-cd scin
-python3 -m tensorboard.main --logdir_spec=ResNet50:logs,EfficientNet-B3:logs_efficientnet
+cd scin/model
+python3 -m tensorboard.main --logdir_spec=ResNet50:resnet50/logs,EfficientNet-B3:efficientnet_b3/logs
 # 브라우저에서 http://localhost:6006 접속
 # TensorBoard에서 "ResNet50"과 "EfficientNet-B3" 탭으로 전환 가능
+```
 
 **체크포인트 파일**:
 - `checkpoint_latest.pth`: 매 에포크 자동 저장 (최신 상태)
@@ -289,34 +312,37 @@ export PYTORCH_ENABLE_MPS_FALLBACK=1
 
 ### 6. 모델 평가
 
-```bash
-cd scin/model
+**EfficientNet-B3 평가 (권장)**
 
-# EfficientNet-B3 평가 (권장)
+```bash
+cd scin/model/efficientnet_b3
+
 python evaluate.py \
-    --model_type efficientnet-b3 \
-    --checkpoint ../checkpoints_efficientnet/checkpoint_best.pth \
-    --data_dir ../data/scin_processed \
-    --image_root ../data/scin_dataset \
-    --output_dir ./evaluation_results_efficientnet \
+    --checkpoint ./checkpoints/checkpoint_best.pth \
+    --data_dir ../../data/scin_processed \
+    --image_root ../../data/SCIN \
+    --output_dir ./evaluation_results \
     --batch_size 32 \
     --threshold 0.3 \
     --num_workers 0
+```
 
-# ResNet50 평가 (레거시, Recall 최적화)
+**ResNet50 평가 (레거시, Recall 최적화)**
+
+```bash
+cd scin/model/resnet50
+
 python evaluate.py \
-    --model_type resnet50 \
-    --checkpoint ../checkpoints/checkpoint_best.pth \
-    --data_dir ../data/scin_processed \
-    --image_root ../data/scin_dataset \
-    --output_dir ./evaluation_results_resnet50 \
+    --checkpoint ./checkpoints/checkpoint_best.pth \
+    --data_dir ../../data/scin_processed \
+    --image_root ../../data/SCIN \
+    --output_dir ./evaluation_results \
     --batch_size 32 \
     --threshold 0.3 \
     --num_workers 0
 ```
 
 **평가 파라미터**:
-- `--model_type`: 모델 선택 (efficientnet-b3 또는 resnet50, 기본값: efficientnet-b3)
 - `--checkpoint`: 평가할 모델 체크포인트 경로
 - `--data_dir`: 전처리된 데이터 디렉토리
 - `--image_root`: 원본 이미지 디렉토리
@@ -326,7 +352,7 @@ python evaluate.py \
   - **0.3 (권장)**: Recall 향상, F1-Score 최적화 - 예측 가능 클래스 증가
   - **0.2**: Recall 극대화 (Precision 저하 가능)
   - **0.5 (기본)**: Precision 우선, 보수적 예측
-- `--num_workers`: DataLoader 워커 수 (Apple Silicon: 0, 기본값: 4)
+- `--num_workers`: DataLoader 워커 수 (Apple Silicon: 0, 기본값: 0)
 
 **출력 파일**:
 - `evaluation_summary.json` - Top-K Accuracy, Macro/Micro F1-Score 등
@@ -567,14 +593,20 @@ python train.py \
 ---
 
 **변경 이력**:
+- **2025-11-26 (Phase 3)**: 모델 분리 구조 재구성
+  - 모델별 독립 디렉토리 구조 도입: `resnet50/`, `efficientnet_b3/`
+  - 각 모델에 독립적인 train.py, evaluate.py, model.py 제공
+  - 모델별 상세 README 문서 추가
+  - `--model_type` 파라미터 제거 (디렉토리 기반 실행)
+  - 체크포인트와 로그를 모델별 디렉토리에 저장
+  - 통합 train.py/evaluate.py는 deprecated 처리
+  - 코드 유지보수성 및 가독성 향상
 - **2025-01-14 (Phase 2)**: EfficientNet-B3 모델 추가 (발열 최적화)
   - EfficientNet-B3 아키텍처 구현 (12M params, ResNet50 대비 53% 감소)
   - 300x300 입력 크기 최적화 (ResNet50: 224x224)
-  - `--model_type` 파라미터 추가 (efficientnet-b3 또는 resnet50 선택)
   - MacBook Air 발열 20-30% 추가 감소
   - Epoch 시간 42% 단축 (86초 → 40-50초)
   - 성능 향상 예상: Top-1 +37-73%, Top-3 +24-46%, Top-5 +19-31%
-  - 비교용 디렉토리 분리: checkpoints_efficientnet, logs_efficientnet
   - ResNet50 레거시 지원 유지 (기존 체크포인트 호환성)
 - **2025-01-14 (Phase 1.1)**: MPS 디바이스 호환성 개선
   - CPU 체크포인트 → MPS 재개 시 Optimizer state 자동 변환 추가
