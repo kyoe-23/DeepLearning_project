@@ -9,12 +9,23 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 커뮤니
 ### 백엔드
 - **Node.js** - 서버 런타임
 - **Express** - 웹 프레임워크
+- **PostgreSQL** - 관계형 데이터베이스
+- **pg** - PostgreSQL 클라이언트 라이브러리
 - **bcryptjs** - 비밀번호 해싱
 - **jsonwebtoken** - JWT 토큰 생성 및 검증
 - **express-validator** - 입력값 검증
 - **express-rate-limit** - Rate limiting
 - **multer** - 파일 업로드
 - **dotenv** - 환경 변수 관리
+- **axios** - HTTP 클라이언트 (Flask AI 서비스 통신)
+
+### AI 서비스 (Flask)
+- **Python 3.8+** - AI 서비스 런타임
+- **Flask** - 경량 웹 프레임워크
+- **PyTorch 2.0+** - 딥러닝 프레임워크
+- **torchvision** - 이미지 변환 및 모델
+- **Pillow** - 이미지 처리
+- **Gunicorn** - 프로덕션 WSGI 서버
 
 ### 프론트엔드
 - **Vanilla JavaScript** - 순수 자바스크립트
@@ -27,6 +38,14 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 커뮤니
 .
 ├── backend/                 # 백엔드 서버
 │   ├── src/                # 백엔드 소스 코드
+│   │   ├── config/         # 설정 파일
+│   │   │   ├── database.js # PostgreSQL 연결 설정
+│   │   │   └── constants.js# 상수 정의
+│   │   ├── models/         # 데이터 모델 (PostgreSQL 스키마)
+│   │   │   ├── user.js     # 사용자 모델
+│   │   │   ├── post.js     # 게시글 모델
+│   │   │   ├── comment.js  # 댓글 모델
+│   │   │   └── analysis.js # AI 분석 모델
 │   │   ├── routes/         # API 라우트
 │   │   │   ├── auth.js     # 인증 관련 엔드포인트
 │   │   │   ├── board.js    # 게시판 관련 엔드포인트
@@ -44,7 +63,6 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 커뮤니
 │       ├── index.html      # 랜딩 페이지
 │       ├── script.js       # 랜딩 페이지 로직
 │       ├── login.html      # 로그인 페이지
-│       ├── login.js        # 로그인 로직
 │       ├── signup.html     # 회원가입 페이지
 │       ├── signup.js       # 회원가입 로직
 │       ├── board.html      # 게시판 메인 페이지
@@ -62,9 +80,22 @@ Node.js와 Express를 사용한 JWT 기반 사용자 인증 시스템, 커뮤니
 │       ├── ai-result.js    # AI 결과 로직
 │       ├── common-nav.js   # 공통 네비게이션 로직
 │       └── style.css       # 전역 스타일시트
+├── scin/                   # AI 모델 시스템
+│   ├── api/                # Flask AI 서비스
+│   │   ├── app.py          # Flask 서버 진입점
+│   │   ├── config.py       # AI 서비스 설정
+│   │   ├── inference.py    # 모델 추론 로직
+│   │   └── uploads/        # AI 분석용 이미지 임시 저장
+│   ├── model/              # 딥러닝 모델
+│   │   ├── resnet50/       # ResNet50 모델
+│   │   └── efficientnet_b3/# EfficientNet-B3 모델
+│   ├── data/               # 데이터셋 및 전처리
+│   ├── checkpoints/        # 학습된 모델 체크포인트
+│   └── logs/               # 학습 로그
 ├── package.json            # 루트 패키지 설정
 ├── .gitignore             # Git 제외 파일
 ├── README.md              # 프로젝트 문서
+├── Architecture.md        # 시스템 아키텍처 문서
 └── CLAUDE.md              # Claude Code 가이드
 ```
 
@@ -77,28 +108,72 @@ cd backend
 npm install
 ```
 
-### 2. 환경 변수 설정
+### 2. PostgreSQL 데이터베이스 설정
+
+PostgreSQL 설치 및 데이터베이스 생성:
+
+```bash
+# macOS (Homebrew)
+brew install postgresql
+brew services start postgresql
+
+# 데이터베이스 생성
+createdb skinai_db
+
+# 또는 psql로 접속하여 생성
+psql postgres
+CREATE DATABASE skinai_db;
+\q
+```
+
+### 3. 환경 변수 설정
 
 `backend/.env` 파일을 생성하세요:
 
 ```bash
 # backend/.env 파일 생성 (수동)
 cat > backend/.env << EOF
+# JWT 설정
 JWT_SECRET=your-very-secure-random-string-here-minimum-32-characters
 JWT_EXPIRE=24h
+
+# PostgreSQL 데이터베이스 설정
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=skinai_db
+DB_USER=your_db_username
+DB_PASSWORD=your_db_password
+
+# Flask AI 서비스 설정
+FLASK_AI_SERVICE_URL=http://localhost:5000
+FLASK_API_TIMEOUT=30000
 EOF
 ```
 
 또는 텍스트 에디터로 `backend/.env` 파일을 만들어 다음 내용을 입력하세요:
 
 ```env
+# JWT 설정
 JWT_SECRET=your-very-secure-random-string-here-minimum-32-characters
 JWT_EXPIRE=24h
+
+# PostgreSQL 데이터베이스 설정
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=skinai_db
+DB_USER=your_db_username
+DB_PASSWORD=your_db_password
+
+# Flask AI 서비스 설정
+FLASK_AI_SERVICE_URL=http://localhost:5000
+FLASK_API_TIMEOUT=30000
 ```
 
-> **보안 경고**: `JWT_SECRET`을 반드시 안전한 랜덤 문자열(최소 32자)로 변경하세요!
+> **보안 경고**:
+> - `JWT_SECRET`을 반드시 안전한 랜덤 문자열(최소 32자)로 변경하세요!
+> - `DB_USER`와 `DB_PASSWORD`를 실제 PostgreSQL 계정 정보로 변경하세요!
 
-### 3. 서버 실행
+### 4. 서버 실행
 
 프로젝트 루트에서:
 ```bash
@@ -114,14 +189,15 @@ npm start
 서버가 `http://localhost:3000`에서 실행됩니다.
 
 ## 실행 중인 서버 종료 후 재시작
-포트 3000 사용 프로세스 강제 종료
+```bash
+# 1. 포트 3000 사용 프로세스 강제 종료
 lsof -ti:3000 | xargs kill -9
 
 # 2. 서버 다시 시작
 npm start
+```
 
-
-### 4. 브라우저에서 접속
+### 5. 브라우저에서 접속
 
 | 페이지 | URL | 설명 |
 |--------|-----|------|
@@ -424,11 +500,11 @@ sequenceDiagram
 ```
 
 ### 게시판 동작
-1. 게시글 목록은 최신순 정렬
-2. 게시글 조회 시 조회수 자동 증가
+1. 게시글 목록은 최신순 정렬 (PostgreSQL ORDER BY)
+2. 게시글 조회 시 조회수 자동 증가 (PostgreSQL UPDATE)
 3. 작성자 확인은 JWT에서 추출한 `userId`로 수행 (✅ 구현됨)
-4. 좋아요는 사용자당 1회 제한 (Set 자료구조 사용)
-5. 게시글 삭제 시 댓글/좋아요도 함께 삭제
+4. 좋아요는 사용자당 1회 제한 (post_likes 테이블의 UNIQUE 제약조건)
+5. 게시글 삭제 시 댓글/좋아요도 함께 삭제 (PostgreSQL CASCADE)
 
 ### 보안 기능
 
@@ -456,25 +532,21 @@ sequenceDiagram
 
 ### 중요한 제한사항
 
-1. **인메모리 데이터 저장**
-   - 모든 데이터(사용자, 게시글, 댓글, 좋아요, AI 분석)가 메모리에 저장됨
-   - 서버 재시작 시 모든 데이터 손실
-   - 데이터베이스 미사용
-
-2. **성능 이슈**
+1. **성능 이슈**
    - 페이지네이션 없음 (모든 게시글 한번에 로드)
-   - 인덱싱 없음
    - 이미지 파일 로컬 저장 (클라우드 스토리지 미사용)
+   - 데이터베이스 인덱스 최적화 필요
 
-3. **AI 분석 제한**
-   - 현재 규칙 기반 분석 (실제 AI 모델 미적용)
-   - 단순 설문 응답 기반 점수 산출
+2. **AI 분석 제한**
+   - Flask AI 서비스와 HTTP 통신 지연 가능
+   - 이미지 파일 크기 제한 (최대 5MB)
+   - 실시간 분석 속도 개선 필요
 
-4. **기타 제한사항**
+3. **기타 제한사항**
    - CORS 미설정
    - HTTPS 미지원
    - 에러 핸들링 기본 수준
-   - ID 생성 방식 (삭제 후 재생성 시 충돌 가능)
+   - 파일 업로드 악성코드 검사 미구현
 
 ### 개선 로드맵
 
@@ -491,27 +563,34 @@ sequenceDiagram
 - [x] 반응형 디자인
 - [x] 카드 기반 레이아웃
 
-**Phase 3: 기능 확장** (일부 완료)
-- [x] 게시글 검색
+**Phase 3: AI 모델 통합** ✅ 완료
 - [x] 이미지 업로드 (AI 분석용)
 - [x] AI 피부 분석 시스템
+- [x] Flask AI 서비스 마이크로서비스 아키텍처
+- [x] PyTorch 기반 ResNet50/EfficientNet-B3 모델 통합
+- [x] 50가지 피부 질환 분류 시스템
+
+**Phase 4: 데이터베이스 연동** 🚧 진행 중
+- [x] PostgreSQL 연동
+- [x] 데이터 영속성 확보
+- [ ] 데이터베이스 스키마 마이그레이션
+- [ ] 인덱싱 추가 및 쿼리 최적화
+- [ ] 클라우드 이미지 스토리지 (AWS S3, Cloudinary 등)
+
+**Phase 5: 기능 확장**
+- [x] 게시글 검색
 - [x] 게시판 카테고리 분류
 - [ ] 게시글 페이지네이션
 - [ ] 비밀번호 재설정
 - [ ] 이메일 인증
-- [ ] 실제 AI 모델 통합 (현재는 규칙 기반)
+- [ ] 알림 시스템
 
-**Phase 4: 데이터베이스 연동**
-- [ ] MongoDB/PostgreSQL 연동
-- [ ] 데이터 영속성 확보
-- [ ] 인덱싱 추가
-- [ ] 클라우드 이미지 스토리지 (AWS S3, Cloudinary 등)
-
-**Phase 5: 프로덕션 준비**
+**Phase 6: 프로덕션 준비**
 - [ ] HTTPS & CORS 설정
-- [ ] 로깅 & 모니터링
-- [ ] 배포 자동화
-- [ ] 성능 최적화
+- [ ] 로깅 & 모니터링 시스템
+- [ ] 배포 자동화 (Docker, CI/CD)
+- [ ] 성능 최적화 및 캐싱
+- [ ] 부하 테스트
 
 ## 개발 가이드
 

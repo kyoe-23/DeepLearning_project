@@ -25,9 +25,9 @@ graph LR
 
     subgraph DATA["데이터 계층"]
         direction TB
-        MEMORY["<b>In-Memory DB</b><br/>Users, Posts<br/>Comments, Analyses"]
+        POSTGRES["<b>PostgreSQL</b><br/>Users, Posts<br/>Comments, Analyses"]
         FILES["<b>파일 시스템</b><br/>uploads/"]
-        MEMORY --- FILES
+        POSTGRES --- FILES
     end
 
     subgraph SECURITY["보안"]
@@ -49,7 +49,7 @@ graph LR
     style MW fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
     style API fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
     style LOGIC fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
-    style MEMORY fill:#66BB6A,stroke:#2E7D32,stroke-width:2px,color:#000
+    style POSTGRES fill:#66BB6A,stroke:#2E7D32,stroke-width:2px,color:#000
     style FILES fill:#66BB6A,stroke:#2E7D32,stroke-width:2px,color:#000
     style SEC fill:#EF5350,stroke:#C62828,stroke-width:2px,color:#000
 ```
@@ -128,28 +128,30 @@ graph TB
 graph TB
     subgraph STORAGE["데이터 저장소"]
         direction LR
-        MEMORY["<b>In-Memory DB</b><br/>⚠️ 서버 재시작시 초기화"]
+        POSTGRES["<b>PostgreSQL</b><br/>✅ 데이터 영속성 확보"]
         FILES["<b>파일 시스템</b><br/>/backend/uploads/"]
     end
 
-    subgraph MODELS["데이터 모델"]
+    subgraph MODELS["데이터 모델 (PostgreSQL 테이블)"]
         direction LR
-        USERS["<b>Users</b><br/>id, email<br/>password, name"]
-        POSTS["<b>Posts</b><br/>id, title<br/>content, likes"]
-        COMMENTS["<b>Comments</b><br/>id, postId<br/>content"]
-        ANALYSES["<b>Analyses</b><br/>id, userId<br/>score, results"]
+        USERS["<b>users</b><br/>id, email, password<br/>name, created_at"]
+        POSTS["<b>posts</b><br/>id, category, title<br/>content, author_id, likes"]
+        COMMENTS["<b>comments</b><br/>id, post_id, content<br/>author_id, created_at"]
+        ANALYSES["<b>ai_analyses</b><br/>id, user_id, image_url<br/>score, results, created_at"]
+        SURVEYS["<b>survey_questions</b><br/>id, question, type<br/>options, required"]
     end
 
     MODELS --> STORAGE
 
     style STORAGE fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
     style MODELS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
-    style MEMORY fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
+    style POSTGRES fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
     style FILES fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
     style USERS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
     style POSTS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
     style COMMENTS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
     style ANALYSES fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
+    style SURVEYS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
 ```
 
 #### 4️⃣ 보안 계층
@@ -210,17 +212,90 @@ Node.js 기반의 백엔드 서버로 모든 API 요청을 처리합니다.
 
 ### 3. 데이터 계층 💾
 
-#### In-Memory Storage
-⚠️ **주의**: 모든 데이터는 메모리에 저장되며, 서버 재시작 시 초기화됩니다.
+#### PostgreSQL 데이터베이스
+✅ **데이터 영속성 확보**: PostgreSQL을 사용하여 모든 데이터가 안전하게 저장되며, 서버 재시작 후에도 유지됩니다.
 
-#### 데이터 모델
-- **Users**: 사용자 정보 (id, email, password, name, createdAt)
-- **Posts**: 게시글 (id, category, title, content, authorId, likes)
-- **Comments**: 댓글 (id, postId, content, authorId, createdAt)
-- **AI Analyses**: AI 분석 결과 (id, userId, imageUrl, score, results)
+#### 데이터베이스 테이블 스키마
+
+**users** - 사용자 정보
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**posts** - 게시글
+```sql
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    category VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    author_name VARCHAR(100) NOT NULL,
+    views INTEGER DEFAULT 0,
+    likes INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**comments** - 댓글
+```sql
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    author_name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**ai_analyses** - AI 분석 결과
+```sql
+CREATE TABLE ai_analyses (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    image_url VARCHAR(500) NOT NULL,
+    score INTEGER NOT NULL,
+    results JSONB NOT NULL,
+    survey_answers JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**survey_questions** - 설문 질문
+```sql
+CREATE TABLE survey_questions (
+    id SERIAL PRIMARY KEY,
+    question TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    options JSONB,
+    required BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**post_likes** - 게시글 좋아요 (다대다 관계)
+```sql
+CREATE TABLE post_likes (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(post_id, user_id)
+);
+```
 
 #### 파일 시스템
-- 업로드된 이미지는 `/backend/uploads/` 디렉토리에 저장
+- 업로드된 이미지는 `/backend/uploads/` 디렉토리에 로컬 저장
+- 향후 AWS S3 또는 Cloudinary와 같은 클라우드 스토리지로 마이그레이션 예정
 
 ### 4. 보안 계층 🔒
 
@@ -279,12 +354,23 @@ sequenceDiagram
 ### 백엔드
 - **Node.js**: 서버 런타임
 - **Express**: 웹 프레임워크
+- **PostgreSQL**: 관계형 데이터베이스
+- **pg**: PostgreSQL 클라이언트 라이브러리
 - **bcryptjs**: 비밀번호 해싱
 - **jsonwebtoken**: JWT 토큰 생성 및 검증
 - **express-validator**: 입력값 검증
 - **express-rate-limit**: Rate limiting
 - **multer**: 파일 업로드
 - **dotenv**: 환경 변수 관리
+- **axios**: HTTP 클라이언트 (Flask AI 서비스 통신)
+
+### AI 서비스 (Flask)
+- **Python 3.8+**: AI 서비스 런타임
+- **Flask**: 경량 웹 프레임워크
+- **PyTorch 2.0+**: 딥러닝 프레임워크
+- **torchvision**: 이미지 변환 및 모델
+- **Pillow**: 이미지 처리
+- **Gunicorn**: 프로덕션 WSGI 서버
 
 ### 프론트엔드
 - **Vanilla JavaScript**: 순수 자바스크립트
@@ -315,17 +401,20 @@ sequenceDiagram
 
 > **경고**: 이 프로젝트는 학습/프로토타입 목적입니다. 프로덕션 환경에 배포하지 마세요.
 
-1. **인메모리 데이터 저장**
-   - 서버 재시작 시 모든 데이터 손실
-   - 데이터베이스 미사용
+1. **데이터베이스 최적화**
+   - 데이터베이스 인덱스 최적화 필요
+   - 쿼리 성능 튜닝 필요
+   - 커넥션 풀 크기 조정 필요
 
 2. **성능 이슈**
-   - 페이지네이션 없음
-   - 인덱싱 없음
-   - 로컬 이미지 저장
+   - 페이지네이션 없음 (모든 게시글 한번에 로드)
+   - 로컬 이미지 저장 (클라우드 스토리지 미사용)
+   - Flask AI 서비스와 HTTP 통신 오버헤드
 
 3. **AI 분석 제한**
-   - 규칙 기반 분석 (실제 AI 모델 미적용)
+   - Flask 서비스 다운 시 fallback 분석만 가능
+   - 이미지 파일 크기 제한 (최대 5MB)
+   - 실시간 분석 속도 개선 필요
 
 ## 개선 로드맵
 
@@ -341,26 +430,34 @@ sequenceDiagram
 - [x] 게시판 카테고리 시스템
 - [x] 반응형 디자인
 
-### Phase 3: 기능 확장 (일부 완료)
-- [x] 게시글 검색
+### Phase 3: AI 모델 통합 ✅ 완료
 - [x] 이미지 업로드
 - [x] AI 피부 분석 시스템
+- [x] Flask AI 서비스 마이크로서비스 아키텍처
+- [x] PyTorch 기반 ResNet50/EfficientNet-B3 모델 통합
+- [x] 50가지 피부 질환 분류 시스템
+
+### Phase 4: 데이터베이스 연동 🚧 진행 중
+- [x] PostgreSQL 연동
+- [x] 데이터 영속성 확보
+- [ ] 데이터베이스 스키마 마이그레이션
+- [ ] 인덱싱 추가 및 쿼리 최적화
+- [ ] 커넥션 풀 설정
+- [ ] 클라우드 이미지 스토리지
+
+### Phase 5: 기능 확장
+- [x] 게시글 검색
 - [ ] 페이지네이션
 - [ ] 비밀번호 재설정
 - [ ] 이메일 인증
-- [ ] 실제 AI 모델 통합
+- [ ] 알림 시스템
 
-### Phase 4: 데이터베이스 연동
-- [ ] MongoDB/PostgreSQL 연동
-- [ ] 데이터 영속성 확보
-- [ ] 인덱싱 추가
-- [ ] 클라우드 이미지 스토리지
-
-### Phase 5: 프로덕션 준비
+### Phase 6: 프로덕션 준비
 - [ ] HTTPS & CORS 설정
-- [ ] 로깅 & 모니터링
-- [ ] 배포 자동화
-- [ ] 성능 최적화
+- [ ] 로깅 & 모니터링 시스템
+- [ ] 배포 자동화 (Docker, CI/CD)
+- [ ] 성능 최적화 및 캐싱
+- [ ] 부하 테스트
 
 ## 참고 문서
 - [README.md](./README.md): 프로젝트 전체 문서
