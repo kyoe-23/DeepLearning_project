@@ -132,7 +132,7 @@ graph TB
         FILES["<b>파일 시스템</b><br/>/backend/uploads/"]
     end
 
-    subgraph MODELS["데이터 모델 (PostgreSQL 테이블)"]
+    subgraph MODELS["데이터 모델 (PostgreSQL테이블)"]
         direction LR
         USERS["<b>users</b><br/>id, email, password<br/>name, created_at"]
         POSTS["<b>posts</b><br/>id, category, title<br/>content, author_id, likes"]
