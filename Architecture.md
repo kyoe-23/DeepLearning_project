@@ -128,7 +128,7 @@ graph TB
 graph TB
     subgraph STORAGE["데이터 저장소"]
         direction LR
-        POSTGRES["<b>PostgreSQL</b><br/>✅ 데이터 영속성 확보"]
+        POSTGRES["<b>PostgreSQL</b><br/> 데이터 영속성 확보"]
         FILES["<b>파일 시스템</b><br/>/backend/uploads/"]
     end
 
