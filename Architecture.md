@@ -134,6 +134,7 @@ graph TB
 
     subgraph MODELS["데이터 모델 (PostgreSQL테이블)"]
         direction LR
+        
         USERS["<b>users</b><br/>id, email, password<br/>name, created_at"]
         POSTS["<b>posts</b><br/>id, category, title<br/>content, author_id, likes"]
         COMMENTS["<b>comments</b><br/>id, post_id, content<br/>author_id, created_at"]
