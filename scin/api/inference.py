@@ -12,7 +12,6 @@ sys.path.append(str(Path(__file__).resolve().parent.parent / 'model'))
 import torch
 import torch.nn as nn
 from torchvision import transforms, models
-from efficientnet_pytorch import EfficientNet
 from PIL import Image
 import numpy as np
 import json
@@ -24,6 +23,7 @@ from config import (
     IMAGE_SIZE,
     TOP_K_PREDICTIONS,
     CONFIDENCE_THRESHOLD,
+    TEMPERATURE,
     DISEASE_LABELS,
     DISEASE_LABELS_KR,
     DISEASE_RECOMMENDATIONS,
@@ -47,19 +47,6 @@ class ResNet50Classifier(nn.Module):
         return self.backbone(x)
 
 
-class EfficientNetB3Classifier(nn.Module):
-    """EfficientNet-B3 기반 다중 라벨 분류기 (train.py와 동일한 구조)"""
-
-    def __init__(self, num_classes, pretrained=True, dropout=0.5):
-        super(EfficientNetB3Classifier, self).__init__()
-        if pretrained:
-            self.backbone = EfficientNet.from_pretrained('efficientnet-b3', num_classes=num_classes)
-        else:
-            self.backbone = EfficientNet.from_name('efficientnet-b3', num_classes=num_classes)
-        self.backbone._dropout = nn.Dropout(p=dropout)
-
-    def forward(self, x):
-        return self.backbone(x)
 
 
 class SkinDiseasePredictor:
@@ -97,13 +84,11 @@ class SkinDiseasePredictor:
 
     def _load_model(self):
         """체크포인트에서 모델 로드"""
-        # 모델 생성
+        # 모델 생성 (ResNet50만 지원)
         if MODEL_TYPE == 'resnet50':
             self.model = ResNet50Classifier(num_classes=NUM_CLASSES, pretrained=False, dropout=0.6)
-        elif MODEL_TYPE == 'efficientnet-b3':
-            self.model = EfficientNetB3Classifier(num_classes=NUM_CLASSES, pretrained=False, dropout=0.5)
         else:
-            raise ValueError(f"지원하지 않는 모델 타입: {MODEL_TYPE}")
+            raise ValueError(f"지원하지 않는 모델 타입: {MODEL_TYPE}. 'resnet50'만 지원됩니다.")
 
         # 체크포인트 로드
         if not MODEL_CHECKPOINT_PATH.exists():
@@ -189,10 +174,11 @@ class SkinDiseasePredictor:
         image_tensor = self.preprocess_image(image_path)
         image_tensor = image_tensor.to(self.device)
 
-        # 추론
+        # 추론 (Temperature Scaling 적용)
         with torch.no_grad():
             outputs = self.model(image_tensor)
-            probabilities = torch.sigmoid(outputs).cpu().numpy()[0]  # (num_classes,)
+            # Temperature Scaling: 낮은 temperature로 신뢰도 증가
+            probabilities = torch.sigmoid(outputs / TEMPERATURE).cpu().numpy()[0]  # (num_classes,)
 
         # Top-K 예측 추출
         top_k_indices = np.argsort(probabilities)[::-1][:top_k]
@@ -208,8 +194,8 @@ class SkinDiseasePredictor:
                     DISEASE_RECOMMENDATIONS.get("default", [])
                 )
 
-                # OOD(Out-of-Distribution) 검출: 신뢰도 40% 미만
-                is_ood = prob < 0.4
+                # OOD(Out-of-Distribution) 검출: 신뢰도 25% 미만
+                is_ood = bool(prob < 0.25)  # numpy.bool_ → Python bool 변환
                 prediction = {
                     'disease': disease_name,
                     'disease_ko': DISEASE_LABELS_KR.get(disease_name, disease_name),

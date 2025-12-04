@@ -17,10 +17,11 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-# 상위 디렉토리에서 dataset import
+# 상위 디렉토리에서 dataset, loss import
 sys.path.append(str(Path(__file__).parent.parent))
 from dataset import get_data_loaders
 from model import ResNet50Classifier
+from loss import get_loss_function
 
 
 class Trainer:
@@ -307,6 +308,12 @@ def main():
     parser.add_argument('--weight_decay', type=float, default=1e-4, help='Weight decay')
     parser.add_argument('--patience', type=int, default=10, help='Early stopping patience')
 
+    # 손실 함수 설정
+    parser.add_argument('--loss_type', type=str, default='focal', choices=['focal', 'asymmetric', 'bce'],
+                        help='손실 함수 타입 (focal: Focal Loss, asymmetric: Asymmetric Loss, bce: BCE Loss)')
+    parser.add_argument('--focal_alpha', type=float, default=0.25, help='Focal Loss alpha 파라미터 (0~1)')
+    parser.add_argument('--focal_gamma', type=float, default=2.0, help='Focal Loss gamma 파라미터 (focusing parameter)')
+
     # DataLoader 설정
     parser.add_argument('--num_workers', type=int, default=0, help='DataLoader 워커 수 (Apple Silicon은 0 권장)')
     parser.add_argument('--augment', action='store_true', default=True, help='데이터 증강 사용')
@@ -354,13 +361,19 @@ def main():
     )
 
     # 손실 함수 (다중 라벨 분류)
-    # 클래스 가중치 적용
-    class_weights_dict = metadata.get('class_weights', {})
-    class_weights = torch.tensor([class_weights_dict.get(str(i), 1.0) for i in range(num_classes)])
-    class_weights = class_weights.to(device)
-
-    criterion = nn.BCEWithLogitsLoss(pos_weight=class_weights)
-    print(f"[INFO] 손실 함수: BCEWithLogitsLoss (클래스 가중치 적용)")
+    if args.loss_type == 'focal':
+        criterion = get_loss_function('focal', alpha=args.focal_alpha, gamma=args.focal_gamma)
+        print(f"[INFO] 손실 함수: Focal Loss (alpha={args.focal_alpha}, gamma={args.focal_gamma})")
+    elif args.loss_type == 'asymmetric':
+        criterion = get_loss_function('asymmetric')
+        print(f"[INFO] 손실 함수: Asymmetric Loss")
+    else:
+        # BCEWithLogitsLoss with class weights
+        class_weights_dict = metadata.get('class_weights', {})
+        class_weights = torch.tensor([class_weights_dict.get(str(i), 1.0) for i in range(num_classes)])
+        class_weights = class_weights.to(device)
+        criterion = nn.BCEWithLogitsLoss(pos_weight=class_weights)
+        print(f"[INFO] 손실 함수: BCEWithLogitsLoss (클래스 가중치 적용)")
 
     # 옵티마이저
     optimizer = optim.Adam(

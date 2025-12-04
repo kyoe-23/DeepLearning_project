@@ -67,7 +67,7 @@ class SCINDataset(Dataset):
     def _get_default_transform(self):
         """기본 Transform 생성"""
         if self.augment:
-            # 학습 시 증강 (EfficientNet-B3 최적 크기: 300x300)
+            # 학습 시 증강 (ResNet50: 224x224)
             return transforms.Compose([
                 transforms.Resize((256, 256)),
                 transforms.RandomCrop((224, 224)),
@@ -81,9 +81,9 @@ class SCINDataset(Dataset):
                 )
             ])
         else:
-            # 검증/테스트 시 (EfficientNet-B3 최적 크기: 300x300)
+            # 검증/테스트 시 (ResNet50: 224x224)
             return transforms.Compose([
-                transforms.Resize((300, 300)),
+                transforms.Resize((224, 224)),
                 transforms.ToTensor(),
                 transforms.Normalize(
                     mean=[0.485, 0.456, 0.406],

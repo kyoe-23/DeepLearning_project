@@ -316,12 +316,12 @@ class ModelEvaluator:
 def main():
     parser = argparse.ArgumentParser(description='SCIN 모델 평가 - ResNet50')
     parser.add_argument('--checkpoint', type=str, required=True, help='모델 체크포인트 경로')
-    parser.add_argument('--data_dir', type=str, required=True, help='전처리 데이터 디렉토리')
-    parser.add_argument('--image_root', type=str, required=True, help='이미지 루트 디렉토리')
+    parser.add_argument('--data_dir', type=str, default='../../data/scin_processed', help='전처리 데이터 디렉토리')
+    parser.add_argument('--image_root', type=str, default='../../data/scin_dataset', help='이미지 루트 디렉토리')
     parser.add_argument('--output_dir', type=str, default='./evaluation_results', help='결과 저장 디렉토리')
     parser.add_argument('--batch_size', type=int, default=32, help='배치 크기')
     parser.add_argument('--num_workers', type=int, default=4, help='DataLoader 워커 수')
-    parser.add_argument('--threshold', type=float, default=0.5, help='이진 분류 임계값')
+    parser.add_argument('--threshold', type=float, default=0.15, help='이진 분류 임계값 (Focal Loss: 0.15 권장)')
 
     args = parser.parse_args()
 

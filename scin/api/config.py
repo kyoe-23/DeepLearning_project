@@ -10,16 +10,11 @@ API_DIR = Path(__file__).resolve().parent
 
 # 모델 설정
 MODEL_CHECKPOINT_PATH = BASE_DIR / 'checkpoints' / 'checkpoint_best.pth'
-MODEL_TYPE = 'resnet50'  # 'resnet50' 또는 'efficientnet-b3'
+MODEL_TYPE = 'resnet50'  # ResNet50만 지원
 NUM_CLASSES = 50
 
 # 이미지 전처리 설정
-if MODEL_TYPE == 'resnet50':
-    IMAGE_SIZE = 224
-elif MODEL_TYPE == 'efficientnet-b3':
-    IMAGE_SIZE = 300
-else:
-    IMAGE_SIZE = 224
+IMAGE_SIZE = 224  # ResNet50 입력 크기
 
 # Flask 서버 설정
 FLASK_HOST = os.getenv('FLASK_HOST', '0.0.0.0')
@@ -35,7 +30,8 @@ ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
 
 # 추론 설정
 TOP_K_PREDICTIONS = 5  # Top-K 예측 개수
-CONFIDENCE_THRESHOLD = 0.35  # 최소 신뢰도 임계값 (OOD 검출)
+CONFIDENCE_THRESHOLD = 0.15  # 최소 신뢰도 임계값 (OOD 검출) - 15%로 낮춤
+TEMPERATURE = 0.7  # Temperature Scaling (0.5~0.8 권장, 낮을수록 신뢰도 증가)
 
 # 50개 피부 질환 한국어 번역 사전
 DISEASE_LABELS_KR = {
