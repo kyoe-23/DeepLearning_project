@@ -1,7 +1,7 @@
 {
   "name": "user-auth-board-system",
   "version": "1.0.0",
-  "description": "JWT 기반 사용자 인증 및 게시판 시스템",
+  "description": "SKIN AI 피부 관리 시스템",
   "author": "",
   "license": "ISC",
   "scripts": {
