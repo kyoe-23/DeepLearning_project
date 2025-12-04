@@ -55,7 +55,7 @@ graph TB
     subgraph AI_SERVICE["AI 서비스 계층 (Flask :5000)"]
         direction TB
         FLASK["<b>Flask API</b><br/>POST /predict<br/>GET /health"]
-        MODEL["<b>PyTorch 모델</b><br/>ResNet50<br/>EfficientNet-B3"]
+        MODEL["<b>PyTorch 모델</b><br/>ResNet50"]
         INFERENCE["<b>추론 엔진</b><br/>Top-5 예측<br/>신뢰도 점수"]
         FLASK --> MODEL --> INFERENCE
     end
