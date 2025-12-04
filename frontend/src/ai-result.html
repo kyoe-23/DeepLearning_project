@@ -23,17 +23,9 @@
             border-radius: 8px;
             padding: 16px 24px;
             margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .disclaimer-icon {
-            font-size: 24px;
         }
 
         .disclaimer-text {
-            flex: 1;
             font-size: 14px;
             color: #666;
         }
@@ -242,21 +234,7 @@
         }
 
         .recommendations-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
             margin-bottom: 24px;
-        }
-
-        .recommendations-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
         }
 
         .recommendations-title {
@@ -271,9 +249,6 @@
         }
 
         .recommendation-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
             padding: 20px;
             background: linear-gradient(135deg, #f5f7fa 0%, #f9fafb 100%);
             border-radius: 10px;
@@ -286,21 +261,7 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
         }
 
-        .recommendation-icon {
-            width: 32px;
-            height: 32px;
-            background: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }
-
         .recommendation-text {
-            flex: 1;
             font-size: 15px;
             line-height: 1.6;
             color: #444;
@@ -419,12 +380,13 @@
                     </div>
                 </div>
 
-                <!-- 의료 면책 고지 -->
-                <div class="disclaimer-banner">
-                    <div class="disclaimer-icon">⚠️</div>
-                    <div class="disclaimer-text">
-                        <strong>의료 면책 고지:</strong>
-                        이 분석 결과는 참고용이며, 정확한 진단과 치료는 반드시 전문의와 상담하시기 바랍니다.
+                <!-- 질환별 추천 사항 -->
+                <div class="recommendations-section" id="recommendations-section" style="display: none;">
+                    <div class="recommendations-header">
+                        <h3 class="recommendations-title">피부 관리 추천 사항</h3>
+                    </div>
+                    <div class="recommendations-list" id="recommendations-list">
+                        <!-- JavaScript로 동적 생성 -->
                     </div>
                 </div>
             </div>
@@ -435,6 +397,14 @@
             <h3 class="section-title">상위 예측 결과 (Top 5)</h3>
             <div class="predictions-list" id="predictions-list">
                 <!-- JavaScript로 동적 생성 -->
+            </div>
+        </div>
+
+        <!-- 의료 면책 고지 -->
+        <div class="disclaimer-banner">
+            <div class="disclaimer-text">
+                <strong>의료 면책 고지:</strong>
+                이 분석 결과는 참고용이며, 정확한 진단과 치료는 반드시 전문의와 상담하시기 바랍니다.
             </div>
         </div>
 
@@ -569,17 +539,124 @@
 
         // 추가 정보 표시 (설문 데이터, 추천 사항)
         function displayAdditionalInfo(analysis) {
-            // 이 부분은 향후 UI 확장 시 사용
-            if (analysis.recommendations) {
-                console.log('[INFO] 추천 사항:', analysis.recommendations);
+            // 추천 사항 표시
+            if (analysis.predictions && analysis.predictions.length > 0) {
+                const topPrediction = analysis.predictions[0];
+                displayRecommendations(topPrediction.disease, topPrediction.disease_ko);
+            } else if (analysis.recommendations && analysis.recommendations.length > 0) {
+                // 서버에서 추천 사항이 직접 제공된 경우
+                displayRecommendationsFromServer(analysis.recommendations);
             }
 
+            // 디버그 로깅
             if (analysis.summary || analysis.aiSummary) {
                 console.log('[INFO] 요약:', analysis.summary || analysis.aiSummary);
             }
 
             if (analysis.skinType || analysis.concerns) {
                 console.log('[INFO] 설문 데이터 - 피부 타입:', analysis.skinType, '고민:', analysis.concerns);
+            }
+        }
+
+        // 질환별 추천 사항 표시
+        function displayRecommendations(diseaseName, diseaseNameKo) {
+            // 질환별 추천 사항 데이터 (config.py와 동기화)
+            const recommendationsData = {
+                "Acne": {
+                    items: [
+                        "피부과 전문의 상담을 권장합니다",
+                        "유분기 적은 화장품을 사용하세요",
+                        "정기적인 클렌징이 중요합니다",
+                        "손으로 만지지 마세요"
+                    ]
+                },
+                "Atopic Dermatitis": {
+                    items: [
+                        "보습제를 자주 발라주세요",
+                        "피부과 전문의 진료가 필요합니다",
+                        "자극적인 세제 사용을 피하세요",
+                        "긁지 않도록 주의하세요"
+                    ]
+                },
+                "Contact Dermatitis": {
+                    items: [
+                        "알레르기 유발 물질을 파악하세요",
+                        "피부과 진료를 받으세요",
+                        "해당 물질과의 접촉을 피하세요",
+                        "스테로이드 연고가 필요할 수 있습니다"
+                    ]
+                },
+                "Eczema": {
+                    items: [
+                        "피부과 전문의 상담을 권장합니다",
+                        "보습제를 정기적으로 사용하세요",
+                        "자극적인 비누나 세제를 피하세요",
+                        "긁지 않도록 주의하세요"
+                    ]
+                },
+                "Psoriasis": {
+                    items: [
+                        "피부과 전문의 진료가 필수입니다",
+                        "스트레스 관리가 중요합니다",
+                        "보습을 철저히 하세요",
+                        "자외선 치료가 도움이 될 수 있습니다"
+                    ]
+                },
+                "Urticaria": {
+                    items: [
+                        "피부과 전문의 상담을 권장합니다",
+                        "원인 물질을 찾아 피하세요",
+                        "항히스타민제 복용이 필요할 수 있습니다",
+                        "긁지 말고 냉찜질을 해보세요"
+                    ]
+                },
+                "default": {
+                    items: [
+                        "피부과 전문의 상담을 권장합니다",
+                        "정확한 진단을 위해 병원 방문이 필요합니다",
+                        "자외선 차단제를 매일 사용하세요",
+                        "충분한 수분 공급을 유지하세요"
+                    ]
+                }
+            };
+
+            // 질환명으로 추천 사항 찾기
+            const recommendations = recommendationsData[diseaseName] || recommendationsData['default'];
+
+            // UI에 표시
+            const recommendationsSection = document.getElementById('recommendations-section');
+            const recommendationsList = document.getElementById('recommendations-list');
+
+            if (recommendations.items && recommendations.items.length > 0) {
+                const itemsHtml = recommendations.items.map((item, index) => {
+                    return `
+                        <div class="recommendation-item">
+                            <div class="recommendation-text">${item}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                recommendationsList.innerHTML = itemsHtml;
+                recommendationsSection.style.display = 'block';
+            }
+        }
+
+        // 서버에서 직접 제공된 추천 사항 표시
+        function displayRecommendationsFromServer(recommendations) {
+            const recommendationsSection = document.getElementById('recommendations-section');
+            const recommendationsList = document.getElementById('recommendations-list');
+
+            if (recommendations && recommendations.length > 0) {
+                const itemsHtml = recommendations.map((item, index) => {
+                    return `
+                        <div class="recommendation-item">
+                            <div class="recommendation-text">${item}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                recommendationsList.innerHTML = itemsHtml;
+                recommendationsSection.style.display = 'block';
             }
         }
 
