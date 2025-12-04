@@ -42,7 +42,6 @@ scin/checkpoints/
 scin/checkpoints_balanced/
 scin/archive/
 scin/model/resnet50/evaluation_results_old/
-scin/model/resnet50/evaluation_results_balanced/
 scin/model/resnet50/logs_balanced/
 
 # Python
