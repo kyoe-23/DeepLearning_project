@@ -45,7 +45,7 @@ graph LR
 
     AI["<b>Flask AI Service</b><br/>Port 5000<br/>PyTorch<br/>ResNet50"]
 
-    DB["<b>PostgreSQL</b><br/>Port 5432<br/>영속적 저장소"]
+    DB["<b>PostgreSQL</b><br/>Port 5432"]
 
     FS["<b>File System</b><br/>이미지 저장소<br/>/uploads/"]
 
