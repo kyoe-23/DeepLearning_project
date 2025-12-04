@@ -49,7 +49,7 @@ graph TB
         MW["<b>미들웨어</b><br/> JWT 인증<br/> Rate Limiter<br/> Validator"]
         ROUTES["<b>API 라우터</b><br/> /api/auth<br/> /api/board<br/> /api/ai"]
         SERVICES["<b>비즈니스 로직</b><br/>사용자 관리<br/>게시판 관리<br/>AI 분석 연동"]
-        MW --> ROUTES --> SERVICES
+        - MW --> ROUTES --> SERVICES
     end
 
     subgraph AI_SERVICE["AI 서비스 계층 (Flask :5000)"]
