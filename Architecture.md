@@ -33,61 +33,93 @@ SkinAI는 **마이크로서비스 아키텍처** 기반의 피부 건강 관리 
 ## 시스템 아키텍처 다이어그램
 
 ### 전체 시스템 구조 (마이크로서비스 아키텍처)
+
+#### 📊 High-Level Architecture
+```mermaid
+graph LR
+    USER["👤<br/><b>사용자</b><br/>웹 브라우저"]
+
+    FE["🌐<br/><b>프론트엔드</b><br/>HTML/CSS/JS<br/>Local Storage"]
+
+    BACKEND["⚙️<br/><b>Node.js Backend</b><br/>Port 3000<br/>Express + JWT<br/>미들웨어"]
+
+    AI["🤖<br/><b>Flask AI Service</b><br/>Port 5000<br/>PyTorch<br/>ResNet50"]
+
+    DB["💾<br/><b>PostgreSQL</b><br/>Port 5432<br/>영속적 저장소"]
+
+    FS["📁<br/><b>File System</b><br/>이미지 저장소<br/>/uploads/"]
+
+    %% 데이터 흐름
+    USER -->|HTTP/HTTPS| FE
+    FE -->|REST API<br/>Bearer Token| BACKEND
+    BACKEND -->|SQL Query| DB
+    BACKEND -->|HTTP POST<br/>/predict| AI
+    BACKEND -->|파일 저장| FS
+    AI -->|이미지 로드| FS
+
+    %% 스타일
+    classDef userClass fill:#E3F2FD,stroke:#1565C0,stroke-width:4px,color:#000
+    classDef frontClass fill:#BBDEFB,stroke:#1976D2,stroke-width:4px,color:#000
+    classDef backClass fill:#FFE0B2,stroke:#EF6C00,stroke-width:4px,color:#000
+    classDef aiClass fill:#E1BEE7,stroke:#7B1FA2,stroke-width:4px,color:#000
+    classDef dataClass fill:#C8E6C9,stroke:#388E3C,stroke-width:4px,color:#000
+
+    class USER userClass
+    class FE frontClass
+    class BACKEND backClass
+    class AI aiClass
+    class DB,FS dataClass
+```
+
+#### 🔍 Detailed System Components
 ```mermaid
 graph TB
-    subgraph CLIENT["클라이언트 계층"]
-        direction TB
-        BROWSER["<b>웹 브라우저</b>"]
-        FE["<b>프론트엔드</b><br/>HTML/CSS/Vanilla JS"]
-        STORAGE["<b>Local Storage</b><br/>JWT Token<br/>User Info"]
-        BROWSER --> FE
-        FE <--> STORAGE
+    subgraph LAYER1["📱 Presentation Layer"]
+        direction LR
+        UI1["로그인/회원가입"]
+        UI2["게시판 CRUD"]
+        UI3["AI 피부 분석"]
+        UI4["프로필 관리"]
     end
 
-    subgraph BACKEND["백엔드 서버 계층 (Node.js :3000)"]
-        direction TB
-        MW["<b>미들웨어</b><br/> JWT 인증<br/> Rate Limiter<br/> Validator"]
-        ROUTES["<b>API 라우터</b><br/> /api/auth<br/> /api/board<br/> /api/ai"]
-        SERVICES["<b>비즈니스 로직</b><br/>사용자 관리<br/>게시판 관리<br/>AI 분석 연동"]
-        MW --> ROUTES --> SERVICES
+    subgraph LAYER2["🔐 Security Layer"]
+        direction LR
+        SEC1["JWT 인증"]
+        SEC2["Rate Limiting"]
+        SEC3["입력값 검증"]
     end
 
-    subgraph AI_SERVICE["AI 서비스 계층 (Flask :5000)"]
-        direction TB
-        FLASK["<b>Flask API</b><br/>POST /predict<br/>GET /health"]
-        MODEL["<b>PyTorch 모델</b><br/>ResNet50"]
-        INFERENCE["<b>추론 엔진</b><br/>Top-5 예측<br/>신뢰도 점수"]
-        FLASK --> MODEL --> INFERENCE
+    subgraph LAYER3["⚙️ Application Layer"]
+        direction LR
+        APP1["인증 API<br/>/api/auth"]
+        APP2["게시판 API<br/>/api/board"]
+        APP3["AI API<br/>/api/ai"]
     end
 
-    subgraph DATA["데이터 계층"]
-        direction TB
-        POSTGRES["<b>PostgreSQL DB</b><br/>users, posts<br/>comments, ai_analyses"]
-        FILES["<b>파일 시스템</b><br/>/backend/uploads/<br/>/scin/api/uploads/"]
+    subgraph LAYER4["🤖 AI Service Layer"]
+        direction LR
+        AI1["Flask API<br/>:5000"]
+        AI2["PyTorch 모델<br/>ResNet50"]
+        AI3["추론 엔진<br/>Top-5 예측"]
     end
 
-    CLIENT <-->|"HTTP/HTTPS<br/>Bearer Token"| BACKEND
-    BACKEND <-->|"SQL 쿼리"| POSTGRES
-    BACKEND <-->|"파일 저장/조회"| FILES
-    BACKEND <-->|"HTTP API<br/>POST /predict"| AI_SERVICE
-    AI_SERVICE <-->|"이미지 로드"| FILES
+    subgraph LAYER5["💾 Data Layer"]
+        direction LR
+        DATA1["PostgreSQL<br/>users, posts<br/>comments"]
+        DATA2["File System<br/>이미지 저장"]
+    end
 
-    style CLIENT fill:#2196F3,stroke:#1565C0,stroke-width:3px,color:#fff
-    style BACKEND fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#fff
-    style AI_SERVICE fill:#9C27B0,stroke:#6A1B9A,stroke-width:3px,color:#fff
-    style DATA fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    LAYER1 --> LAYER2
+    LAYER2 --> LAYER3
+    LAYER3 --> LAYER4
+    LAYER3 --> LAYER5
+    LAYER4 --> LAYER5
 
-    style BROWSER fill:#42A5F5,stroke:#1565C0,stroke-width:2px,color:#000
-    style FE fill:#42A5F5,stroke:#1565C0,stroke-width:2px,color:#000
-    style STORAGE fill:#64B5F6,stroke:#1565C0,stroke-width:2px,color:#000
-    style MW fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
-    style ROUTES fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
-    style SERVICES fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
-    style FLASK fill:#BA68C8,stroke:#6A1B9A,stroke-width:2px,color:#000
-    style MODEL fill:#BA68C8,stroke:#6A1B9A,stroke-width:2px,color:#000
-    style INFERENCE fill:#BA68C8,stroke:#6A1B9A,stroke-width:2px,color:#000
-    style POSTGRES fill:#66BB6A,stroke:#2E7D32,stroke-width:2px,color:#000
-    style FILES fill:#81C784,stroke:#2E7D32,stroke-width:2px,color:#000
+    style LAYER1 fill:#E3F2FD,stroke:#1976D2,stroke-width:3px
+    style LAYER2 fill:#FFF9C4,stroke:#F57C00,stroke-width:3px
+    style LAYER3 fill:#FFE0B2,stroke:#EF6C00,stroke-width:3px
+    style LAYER4 fill:#E1BEE7,stroke:#7B1FA2,stroke-width:3px
+    style LAYER5 fill:#C8E6C9,stroke:#388E3C,stroke-width:3px
 ```
 
 ### 시스템 레이어 구조
