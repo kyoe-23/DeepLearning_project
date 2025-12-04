@@ -45,6 +45,7 @@ graph TB
     end
 
     subgraph BACKEND["백엔드 서버 계층 (Node.js :3000)"]
+    <br>
         direction TB
         MW["<b>미들웨어</b><br/> JWT 인증<br/> Rate Limiter<br/> Validator"]
         ROUTES["<b>API 라우터</b><br/> /api/auth<br/> /api/board<br/> /api/ai"]
