@@ -149,7 +149,7 @@ graph TB
     end
     
     NAV["<b>공통 네비게이션</b><br/>common-nav.js"]
-    STORAGE["<b>Local Storage</b><br/>JWT Token<br/>User Info"]
+    STORAGE["<b>PostgreSQL DB</b><br/>JWT Token<br/>User Info"]
     
     NAV --> PAGES
     PAGES --> STORAGE
