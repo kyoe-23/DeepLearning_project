@@ -279,7 +279,7 @@ erDiagram
 graph TB
     subgraph STORAGE["데이터 저장소"]
         direction TB
-        POSTGRES["<b>PostgreSQL</b><br/>✅ 데이터 영속성 확보<br/>포트: 5432"]
+        POSTGRES["<b>PostgreSQL</b><br/>데이터 영속성 확보<br/>포트: 5432"]
         FILES["<b>파일 시스템</b><br/>📁 /backend/uploads/<br/>📁 /scin/api/uploads/"]
     end
 
@@ -494,11 +494,11 @@ CREATE TABLE post_likes (
 ### 1️⃣ 인증 흐름
 ```mermaid
 sequenceDiagram
-    participant User as 👤 사용자
-    participant FE as 🌐 프론트엔드
-    participant BE as 🖥️ Node.js Backend
-    participant DB as 🗄️ PostgreSQL
-    participant LS as 💾 Local Storage
+    participant User as 사용자
+    participant FE as 프론트엔드
+    participant BE as Node.js Backend
+    participant DB as PostgreSQL
+    participant LS as Local Storage
 
     User->>FE: 회원가입/로그인
     FE->>BE: POST /api/auth/signup or /login<br/>{email, password, name}
@@ -516,18 +516,18 @@ sequenceDiagram
     BE->>BE: jwt.sign({userId, userType})
     BE-->>FE: {success: true, user, token}
     FE->>LS: 저장 token & user
-    FE->>User: ✅ 게시판으로 리다이렉트
+    FE->>User: 게시판으로 리다이렉트
 ```
 
 ### 2️⃣ 인증이 필요한 API 호출 흐름
 ```mermaid
 sequenceDiagram
-    participant User as 👤 사용자
-    participant FE as 🌐 프론트엔드
-    participant LS as 💾 Local Storage
-    participant BE as 🖥️ Node.js Backend
-    participant MW as 🔐 Auth Middleware
-    participant DB as 🗄️ PostgreSQL
+    participant User as 사용자
+    participant FE as 프론트엔드
+    participant LS as Local Storage
+    participant BE as Node.js Backend
+    participant MW as Auth Middleware
+    participant DB as PostgreSQL
 
     Note over User,DB: 예시: 게시글 작성/좋아요/댓글 작성
 
@@ -537,29 +537,29 @@ sequenceDiagram
     FE->>BE: POST /api/board/free/posts<br/>Authorization: Bearer {token}
     BE->>MW: JWT 검증 요청
 
-    alt ✅ 토큰 유효
+    alt 토큰 유효
         MW->>MW: jwt.verify(token, SECRET)
         MW->>BE: req.user = {userId, userType}
         BE->>DB: INSERT INTO posts (author_id, title, content)
         DB-->>BE: 새 게시글 ID 반환
         BE-->>FE: {success: true, data: post}
-        FE->>User: ✅ 게시글 작성 완료
-    else ❌ 토큰 없음/만료/유효하지 않음
+        FE->>User: 게시글 작성 완료
+    else 토큰 없음/만료/유효하지 않음
         MW-->>FE: {success: false, message: "인증 필요"}
-        FE->>User: ❌ 로그인 페이지로 리다이렉트
+        FE->>User: 로그인 페이지로 리다이렉트
     end
 ```
 
 ### 3️⃣ AI 피부 분석 흐름 (마이크로서비스 통신)
 ```mermaid
 sequenceDiagram
-    participant User as 👤 사용자
-    participant FE as 🌐 프론트엔드
-    participant BE as 🖥️ Node.js Backend<br/>:3000
-    participant FS as 📁 File System
-    participant FLASK as 🤖 Flask AI Service<br/>:5000
-    participant MODEL as 🧠 PyTorch Model
-    participant DB as 🗄️ PostgreSQL
+    participant User as 사용자
+    participant FE as 프론트엔드
+    participant BE as Node.js Backend<br/>:3000
+    participant FS as File System
+    participant FLASK as Flask AI Service<br/>:5000
+    participant MODEL as PyTorch Model
+    participant DB as PostgreSQL
 
     Note over User,DB: AI 피부 분석 전체 흐름
 
@@ -580,7 +580,7 @@ sequenceDiagram
     User->>FE: 3. 설문 제출 및 분석 요청
     FE->>BE: POST /api/ai/survey<br/>{imageFilename, answers}
 
-    Note over BE,FLASK: 🔄 마이크로서비스 통신 시작
+    Note over BE,FLASK: 마이크로서비스 통신 시작
 
     BE->>FLASK: POST http://localhost:5000/predict<br/>{image_path}
     FLASK->>FS: 이미지 로드
@@ -590,7 +590,7 @@ sequenceDiagram
     MODEL-->>FLASK: Top-5 질환 + 신뢰도 점수
     FLASK-->>BE: {predictions, recommendations}
 
-    Note over BE,DB: 💾 분석 결과 저장
+    Note over BE,DB: 분석 결과 저장
 
     BE->>BE: 설문 점수 + AI 예측 통합
     BE->>DB: INSERT INTO ai_analyses<br/>(user_id, image_url, results, survey_answers)
@@ -603,7 +603,7 @@ sequenceDiagram
     BE->>DB: SELECT * FROM ai_analyses WHERE id = ?
     DB-->>BE: 분석 결과 데이터
     BE-->>FE: {analysis}
-    FE->>User: ✅ AI 분석 결과 표시<br/>(질환 예측, 차트, 권장사항)
+    FE->>User: AI 분석 결과 표시<br/>(질환 예측, 차트, 권장사항)
 
     Note over User,DB: ⚠️ Flask 서비스 다운 시<br/>Node.js에서 fallback 분석 수행
 ```
@@ -611,10 +611,10 @@ sequenceDiagram
 ### 4️⃣ 게시판 게시글 작성 및 조회 흐름
 ```mermaid
 sequenceDiagram
-    participant User as 👤 사용자
-    participant FE as 🌐 프론트엔드
-    participant BE as 🖥️ Node.js Backend
-    participant DB as 🗄️ PostgreSQL
+    participant User as 사용자
+    participant FE as 프론트엔드
+    participant BE as Node.js Backend
+    participant DB as PostgreSQL
 
     Note over User,DB: 게시글 작성
 
@@ -624,7 +624,7 @@ sequenceDiagram
     BE->>DB: INSERT INTO posts<br/>(category, title, content, author_id)
     DB-->>BE: 새 게시글 ID
     BE-->>FE: {success: true, post}
-    FE->>User: ✅ 게시글 목록으로 이동
+    FE->>User: 게시글 목록으로 이동
 
     Note over User,DB: 게시글 조회
 
