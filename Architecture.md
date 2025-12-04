@@ -1,57 +1,138 @@
 # SkinAI 시스템 아키텍처
 
 ## 개요
-이 문서는 SkinAI 피부 건강 관리 플랫폼의 전체 시스템 아키텍처를 설명합니다.
+
+SkinAI는 **마이크로서비스 아키텍처** 기반의 피부 건강 관리 플랫폼입니다. Node.js Express 백엔드와 Flask AI 서비스가 독립적으로 운영되며, PostgreSQL 데이터베이스로 데이터를 영속적으로 관리합니다.
+
+### 핵심 특징
+
+#### 🏗️ 마이크로서비스 아키텍처
+- **Node.js Backend** (:3000) - 사용자 인증, 게시판, AI 분석 요청 관리
+- **Flask AI Service** (:5000) - PyTorch 모델 기반 피부 질환 예측
+- **PostgreSQL Database** (:5432) - 영속적인 데이터 저장
+- **독립적 배포 및 확장** - 각 서비스를 독립적으로 배포 가능
+
+#### 🔐 강력한 보안
+- **JWT 인증** - 토큰 기반 무상태 인증
+- **Bcrypt 해싱** - 안전한 비밀번호 저장 (10 salt rounds)
+- **Rate Limiting** - API 남용 방지 (분당 100회 제한)
+- **입력 검증** - express-validator로 모든 입력값 검증
+
+#### 🤖 AI 피부 분석
+- **PyTorch 딥러닝** - ResNet50, EfficientNet-B3 모델
+- **50가지 피부 질환 분류** - SCIN 데이터셋 (10,407 이미지)
+- **Top-5 예측** - 신뢰도 점수와 함께 상위 5개 질환 예측
+- **Fallback 시스템** - Flask 서비스 다운 시 규칙 기반 분석 제공
+
+#### 💾 데이터 영속성
+- **PostgreSQL** - 관계형 데이터베이스로 데이터 안전 보관
+- **외래 키 제약조건** - CASCADE로 데이터 무결성 보장
+- **JSONB 타입** - AI 분석 결과 유연하게 저장
+- **트랜잭션 관리** - 데이터 일관성 보장
 
 ## 시스템 아키텍처 다이어그램
 
-### 전체 시스템 구조
+### 전체 시스템 구조 (마이크로서비스 아키텍처)
 ```mermaid
-graph LR
+graph TB
     subgraph CLIENT["클라이언트 계층"]
         direction TB
-        FE["<b>프론트엔드</b><br/>HTML/CSS/JS"]
+        BROWSER["<b>웹 브라우저</b>"]
+        FE["<b>프론트엔드</b><br/>HTML/CSS/Vanilla JS"]
         STORAGE["<b>Local Storage</b><br/>JWT Token<br/>User Info"]
-        FE --- STORAGE
+        BROWSER --> FE
+        FE <--> STORAGE
     end
 
-    subgraph SERVER["서버 계층 (Express :3000)"]
+    subgraph BACKEND["백엔드 서버 계층 (Node.js :3000)"]
         direction TB
-        MW["<b>미들웨어</b><br/>JWT 인증<br/>Rate Limiter<br/>Validator"]
-        API["<b>API 라우터</b><br/>/api/auth<br/>/api/board<br/>/api/ai"]
-        LOGIC["<b>비즈니스 로직</b><br/>사용자 관리<br/>게시판 관리<br/>AI 분석"]
-        MW --> API --> LOGIC
+        MW["<b>미들웨어</b><br/>🔐 JWT 인증<br/>⏱️ Rate Limiter<br/>✅ Validator"]
+        ROUTES["<b>API 라우터</b><br/>📝 /api/auth<br/>📋 /api/board<br/>🤖 /api/ai"]
+        SERVICES["<b>비즈니스 로직</b><br/>사용자 관리<br/>게시판 관리<br/>AI 분석 연동"]
+        MW --> ROUTES --> SERVICES
+    end
+
+    subgraph AI_SERVICE["AI 서비스 계층 (Flask :5000)"]
+        direction TB
+        FLASK["<b>Flask API</b><br/>POST /predict<br/>GET /health"]
+        MODEL["<b>PyTorch 모델</b><br/>ResNet50<br/>EfficientNet-B3"]
+        INFERENCE["<b>추론 엔진</b><br/>Top-5 예측<br/>신뢰도 점수"]
+        FLASK --> MODEL --> INFERENCE
     end
 
     subgraph DATA["데이터 계층"]
         direction TB
-        POSTGRES["<b>PostgreSQL</b><br/>Users, Posts<br/>Comments, Analyses"]
-        FILES["<b>파일 시스템</b><br/>uploads/"]
-        POSTGRES --- FILES
+        POSTGRES["<b>PostgreSQL DB</b><br/>users, posts<br/>comments, ai_analyses"]
+        FILES["<b>파일 시스템</b><br/>/backend/uploads/<br/>/scin/api/uploads/"]
     end
 
-    subgraph SECURITY["보안"]
-        direction TB
-        SEC["<b>JWT</b><br/><b>Bcrypt</b><br/><b>Multer</b>"]
-    end
-
-    CLIENT <-->|"HTTP Request/Response<br/>Authorization: Bearer Token"| SERVER
-    SERVER <-->|"Read/Write"| DATA
-    SERVER -.->|"사용"| SECURITY
+    CLIENT <-->|"HTTP/HTTPS<br/>Bearer Token"| BACKEND
+    BACKEND <-->|"SQL 쿼리"| POSTGRES
+    BACKEND <-->|"파일 저장/조회"| FILES
+    BACKEND <-->|"HTTP API<br/>POST /predict"| AI_SERVICE
+    AI_SERVICE <-->|"이미지 로드"| FILES
 
     style CLIENT fill:#2196F3,stroke:#1565C0,stroke-width:3px,color:#fff
-    style SERVER fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#fff
+    style BACKEND fill:#FF9800,stroke:#E65100,stroke-width:3px,color:#fff
+    style AI_SERVICE fill:#9C27B0,stroke:#6A1B9A,stroke-width:3px,color:#fff
     style DATA fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
-    style SECURITY fill:#F44336,stroke:#C62828,stroke-width:3px,color:#fff
-    
+
+    style BROWSER fill:#42A5F5,stroke:#1565C0,stroke-width:2px,color:#000
     style FE fill:#42A5F5,stroke:#1565C0,stroke-width:2px,color:#000
-    style STORAGE fill:#42A5F5,stroke:#1565C0,stroke-width:2px,color:#000
+    style STORAGE fill:#64B5F6,stroke:#1565C0,stroke-width:2px,color:#000
     style MW fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
-    style API fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
-    style LOGIC fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
+    style ROUTES fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
+    style SERVICES fill:#FFB74D,stroke:#E65100,stroke-width:2px,color:#000
+    style FLASK fill:#BA68C8,stroke:#6A1B9A,stroke-width:2px,color:#000
+    style MODEL fill:#BA68C8,stroke:#6A1B9A,stroke-width:2px,color:#000
+    style INFERENCE fill:#BA68C8,stroke:#6A1B9A,stroke-width:2px,color:#000
     style POSTGRES fill:#66BB6A,stroke:#2E7D32,stroke-width:2px,color:#000
-    style FILES fill:#66BB6A,stroke:#2E7D32,stroke-width:2px,color:#000
-    style SEC fill:#EF5350,stroke:#C62828,stroke-width:2px,color:#000
+    style FILES fill:#81C784,stroke:#2E7D32,stroke-width:2px,color:#000
+```
+
+### 시스템 레이어 구조
+```mermaid
+graph LR
+    subgraph "Layer 1: Presentation"
+        UI["웹 브라우저<br/>HTML/CSS/JS"]
+    end
+
+    subgraph "Layer 2: Application"
+        API["Express API<br/>:3000"]
+        AI["Flask AI<br/>:5000"]
+    end
+
+    subgraph "Layer 3: Business Logic"
+        AUTH["인증/인가"]
+        BOARD["게시판"]
+        ANALYSIS["AI 분석"]
+    end
+
+    subgraph "Layer 4: Data"
+        DB["PostgreSQL"]
+        FS["File System"]
+    end
+
+    UI --> API
+    API --> AI
+    API --> AUTH
+    API --> BOARD
+    API --> ANALYSIS
+    AUTH --> DB
+    BOARD --> DB
+    ANALYSIS --> AI
+    AI --> DB
+    API --> FS
+    AI --> FS
+
+    style UI fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    style API fill:#FFE0B2,stroke:#F57C00,stroke-width:2px
+    style AI fill:#E1BEE7,stroke:#6A1B9A,stroke-width:2px
+    style AUTH fill:#FFF9C4,stroke:#F9A825,stroke-width:2px
+    style BOARD fill:#FFF9C4,stroke:#F9A825,stroke-width:2px
+    style ANALYSIS fill:#FFF9C4,stroke:#F9A825,stroke-width:2px
+    style DB fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style FS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
 ```
 
 ### 상세 계층 구조
@@ -124,27 +205,99 @@ graph TB
 ```
 
 #### 3️⃣ 데이터 계층
+
+**데이터베이스 ER 다이어그램**
+```mermaid
+erDiagram
+    USERS ||--o{ POSTS : "작성"
+    USERS ||--o{ COMMENTS : "작성"
+    USERS ||--o{ AI_ANALYSES : "분석 요청"
+    USERS ||--o{ POST_LIKES : "좋아요"
+    POSTS ||--o{ COMMENTS : "댓글 포함"
+    POSTS ||--o{ POST_LIKES : "좋아요 받음"
+
+    USERS {
+        int id PK
+        varchar email UK "UNIQUE"
+        varchar password
+        varchar name
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    POSTS {
+        int id PK
+        varchar category "자유게시판/질문/정보공유"
+        varchar title
+        text content
+        int author_id FK
+        varchar author_name
+        int views "기본값 0"
+        int likes "기본값 0"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    COMMENTS {
+        int id PK
+        int post_id FK
+        text content
+        int author_id FK
+        varchar author_name
+        timestamp created_at
+    }
+
+    AI_ANALYSES {
+        int id PK
+        int user_id FK
+        varchar image_url
+        int score
+        jsonb results "Top-5 예측 결과"
+        jsonb survey_answers
+        timestamp created_at
+    }
+
+    SURVEY_QUESTIONS {
+        int id PK
+        text question
+        varchar type "radio/checkbox/text"
+        jsonb options
+        boolean required
+        timestamp created_at
+    }
+
+    POST_LIKES {
+        int id PK
+        int post_id FK
+        int user_id FK
+        timestamp created_at
+    }
+```
+
+**스토리지 구조**
 ```mermaid
 graph TB
     subgraph STORAGE["데이터 저장소"]
-        direction LR
-        POSTGRES["<b>PostgreSQL</b><br/> 데이터 영속성 확보"]
-        FILES["<b>파일 시스템</b><br/>/backend/uploads/"]
+        direction TB
+        POSTGRES["<b>PostgreSQL</b><br/>✅ 데이터 영속성 확보<br/>포트: 5432"]
+        FILES["<b>파일 시스템</b><br/>📁 /backend/uploads/<br/>📁 /scin/api/uploads/"]
     end
 
-    subgraph MODELS["데이터 모델(Table)"]
+    subgraph TABLES["PostgreSQL 테이블"]
         direction LR
-        USERS["<b>users</b><br/>id, email, password<br/>name, created_at"]
-        POSTS["<b>posts</b><br/>id, category, title<br/>content, author_id, likes"]
-        COMMENTS["<b>comments</b><br/>id, post_id, content<br/>author_id, created_at"]
-        ANALYSES["<b>ai_analyses</b><br/>id, user_id, image_url<br/>score, results, created_at"]
-        SURVEYS["<b>survey_questions</b><br/>id, question, type<br/>options, required"]
+        USERS["<b>users</b><br/>사용자 정보"]
+        POSTS["<b>posts</b><br/>게시글"]
+        COMMENTS["<b>comments</b><br/>댓글"]
+        ANALYSES["<b>ai_analyses</b><br/>AI 분석 결과"]
+        SURVEYS["<b>survey_questions</b><br/>설문 질문"]
+        LIKES["<b>post_likes</b><br/>게시글 좋아요"]
     end
 
-    MODELS --> STORAGE
+    TABLES --> POSTGRES
+    FILES -.->|"이미지 저장"| ANALYSES
 
     style STORAGE fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
-    style MODELS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
+    style TABLES fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
     style POSTGRES fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
     style FILES fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
     style USERS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
@@ -152,6 +305,7 @@ graph TB
     style COMMENTS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
     style ANALYSES fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
     style SURVEYS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
+    style LIKES fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
 ```
 
 #### 4️⃣ 보안 계층
@@ -194,21 +348,53 @@ Node.js 기반의 백엔드 서버로 모든 API 요청을 처리합니다.
   - 게시글 작성: 분당 3회
 - **Validator**: `express-validator`를 통한 입력값 검증
 
-#### API 라우터
-1. **인증 API** (`/api/auth/*`)
-   - 회원가입, 로그인, 로그아웃
-   - 프로필 조회/수정, 회원탈퇴
-   - 내가 쓴 글/댓글 조회
+#### API 엔드포인트 상세
 
-2. **게시판 API** (`/api/board/free/*`)
-   - 게시글 CRUD
-   - 좋아요, 댓글 관리
-   - 검색 및 카테고리 필터링
+**1. 인증 API** (`/api/auth/*`)
 
-3. **AI 분석 API** (`/api/ai/*`)
-   - 이미지 업로드
-   - 설문조사 제출
-   - 분석 결과 조회
+| Method | Endpoint | 인증 필요 | 설명 |
+|--------|----------|---------|------|
+| POST | `/signup` | ❌ | 회원가입 |
+| POST | `/login` | ❌ | 로그인 |
+| POST | `/logout` | ❌ | 로그아웃 (클라이언트 처리) |
+| GET | `/profile` | ✅ | 프로필 조회 |
+| PUT | `/profile` | ✅ | 프로필 수정 (이름, 비밀번호) |
+| DELETE | `/delete` | ✅ | 회원탈퇴 |
+| GET | `/my-posts` | ✅ | 내가 쓴 글 목록 |
+| GET | `/my-comments` | ✅ | 내가 쓴 댓글 목록 |
+
+**2. 게시판 API** (`/api/board/free/*`)
+
+| Method | Endpoint | 인증 필요 | 설명 |
+|--------|----------|---------|------|
+| GET | `/posts` | ❌ | 게시글 목록 조회 (검색, 카테고리 필터링) |
+| POST | `/posts` | ✅ | 게시글 작성 |
+| GET | `/posts/:id` | ❌ | 게시글 상세 조회 (조회수 증가) |
+| PUT | `/posts/:id` | ✅ | 게시글 수정 (작성자 확인) |
+| DELETE | `/posts/:id` | ✅ | 게시글 삭제 (작성자 확인) |
+| POST | `/posts/:id/like` | ✅ | 게시글 좋아요 (중복 방지) |
+| POST | `/posts/:id/comments` | ✅ | 댓글 작성 |
+| DELETE | `/posts/:postId/comments/:commentId` | ✅ | 댓글 삭제 (작성자 확인) |
+
+**3. AI 분석 API** (`/api/ai/*`)
+
+| Method | Endpoint | 인증 필요 | 설명 |
+|--------|----------|---------|------|
+| POST | `/image-upload` | ✅ | 이미지 업로드 (5MB, JPG/PNG) |
+| GET | `/survey/questions` | ❌ | 설문 질문 목록 조회 |
+| POST | `/survey/questions` | ✅ | 설문 질문 추가 (관리자) |
+| PUT | `/survey/questions/:id` | ✅ | 설문 질문 수정 (관리자) |
+| DELETE | `/survey/questions/:id` | ✅ | 설문 질문 삭제 (관리자) |
+| POST | `/survey` | ✅ | 설문 제출 및 AI 분석 요청 |
+| GET | `/analysis/:id` | ✅ | AI 분석 결과 조회 (본인만) |
+| GET | `/my-analyses` | ✅ | 내 AI 분석 기록 목록 |
+
+**4. Flask AI 서비스 API** (`:5000`)
+
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| POST | `/predict` | 이미지 분석 (Top-5 질환 예측) |
+| GET | `/health` | 서비스 상태 확인 |
 
 ### 3. 데이터 계층 💾
 
@@ -305,49 +491,265 @@ CREATE TABLE post_likes (
 
 ## 주요 데이터 흐름
 
-### 인증 흐름
+### 1️⃣ 인증 흐름
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Frontend
-    participant Backend
-    participant LocalStorage
+    participant User as 👤 사용자
+    participant FE as 🌐 프론트엔드
+    participant BE as 🖥️ Node.js Backend
+    participant DB as 🗄️ PostgreSQL
+    participant LS as 💾 Local Storage
 
-    User->>Frontend: 회원가입/로그인
-    Frontend->>Backend: POST /api/auth/signup or /login
-    Backend->>Backend: 비밀번호 해싱 & JWT 생성
-    Backend->>Frontend: {user, token}
-    Frontend->>LocalStorage: token & user 저장
-    Frontend->>User: 게시판으로 리다이렉트
+    User->>FE: 회원가입/로그인
+    FE->>BE: POST /api/auth/signup or /login<br/>{email, password, name}
+    BE->>DB: SELECT * FROM users WHERE email = ?
+
+    alt 로그인
+        DB-->>BE: 사용자 정보 반환
+        BE->>BE: bcrypt.compare(password, hashedPassword)
+    else 회원가입
+        BE->>BE: bcrypt.hash(password)
+        BE->>DB: INSERT INTO users
+        DB-->>BE: 새 사용자 ID 반환
+    end
+
+    BE->>BE: jwt.sign({userId, userType})
+    BE-->>FE: {success: true, user, token}
+    FE->>LS: 저장 token & user
+    FE->>User: ✅ 게시판으로 리다이렉트
 ```
 
-### 인증이 필요한 API 호출 흐름
+### 2️⃣ 인증이 필요한 API 호출 흐름
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Frontend
-    participant Backend
-    participant LocalStorage
-    participant AuthMiddleware
+    participant User as 👤 사용자
+    participant FE as 🌐 프론트엔드
+    participant LS as 💾 Local Storage
+    participant BE as 🖥️ Node.js Backend
+    participant MW as 🔐 Auth Middleware
+    participant DB as 🗄️ PostgreSQL
 
-    Note over User,AuthMiddleware: 게시글 작성/좋아요/댓글 예시
+    Note over User,DB: 예시: 게시글 작성/좋아요/댓글 작성
 
-    User->>Frontend: 게시글 작성/좋아요/댓글 작성
-    Frontend->>LocalStorage: token 조회
-    LocalStorage-->>Frontend: JWT token
-    Frontend->>Backend: API 요청 + Authorization: Bearer {token}
-    Backend->>AuthMiddleware: JWT 검증
+    User->>FE: 게시글 작성 클릭
+    FE->>LS: token 조회
+    LS-->>FE: JWT token
+    FE->>BE: POST /api/board/free/posts<br/>Authorization: Bearer {token}
+    BE->>MW: JWT 검증 요청
 
-    alt 토큰 유효
-        AuthMiddleware->>Backend: req.user 설정 (userId 포함)
-        Backend->>Backend: 비즈니스 로직 실행
-        Backend-->>Frontend: {success: true, data}
-        Frontend-->>User: 성공 메시지 표시
-    else 토큰 없음/만료/유효하지 않음
-        AuthMiddleware-->>Frontend: {success: false, message: "인증 토큰이 필요합니다"}
-        Frontend-->>User: 에러 메시지 표시
+    alt ✅ 토큰 유효
+        MW->>MW: jwt.verify(token, SECRET)
+        MW->>BE: req.user = {userId, userType}
+        BE->>DB: INSERT INTO posts (author_id, title, content)
+        DB-->>BE: 새 게시글 ID 반환
+        BE-->>FE: {success: true, data: post}
+        FE->>User: ✅ 게시글 작성 완료
+    else ❌ 토큰 없음/만료/유효하지 않음
+        MW-->>FE: {success: false, message: "인증 필요"}
+        FE->>User: ❌ 로그인 페이지로 리다이렉트
     end
 ```
+
+### 3️⃣ AI 피부 분석 흐름 (마이크로서비스 통신)
+```mermaid
+sequenceDiagram
+    participant User as 👤 사용자
+    participant FE as 🌐 프론트엔드
+    participant BE as 🖥️ Node.js Backend<br/>:3000
+    participant FS as 📁 File System
+    participant FLASK as 🤖 Flask AI Service<br/>:5000
+    participant MODEL as 🧠 PyTorch Model
+    participant DB as 🗄️ PostgreSQL
+
+    Note over User,DB: AI 피부 분석 전체 흐름
+
+    User->>FE: 1. 피부 이미지 업로드
+    FE->>BE: POST /api/ai/image-upload<br/>(multipart/form-data)
+    BE->>BE: multer로 파일 검증 (5MB, JPG/PNG)
+    BE->>FS: 이미지 저장 /backend/uploads/
+    FS-->>BE: 파일 경로 반환
+    BE-->>FE: {success: true, filename}
+
+    User->>FE: 2. 설문조사 작성
+    FE->>BE: GET /api/ai/survey/questions
+    BE->>DB: SELECT * FROM survey_questions
+    DB-->>BE: 질문 목록
+    BE-->>FE: {questions}
+    FE->>User: 설문지 표시
+
+    User->>FE: 3. 설문 제출 및 분석 요청
+    FE->>BE: POST /api/ai/survey<br/>{imageFilename, answers}
+
+    Note over BE,FLASK: 🔄 마이크로서비스 통신 시작
+
+    BE->>FLASK: POST http://localhost:5000/predict<br/>{image_path}
+    FLASK->>FS: 이미지 로드
+    FS-->>FLASK: 이미지 데이터
+    FLASK->>MODEL: 이미지 전처리 & 추론
+    MODEL->>MODEL: ResNet50/EfficientNet 예측
+    MODEL-->>FLASK: Top-5 질환 + 신뢰도 점수
+    FLASK-->>BE: {predictions, recommendations}
+
+    Note over BE,DB: 💾 분석 결과 저장
+
+    BE->>BE: 설문 점수 + AI 예측 통합
+    BE->>DB: INSERT INTO ai_analyses<br/>(user_id, image_url, results, survey_answers)
+    DB-->>BE: 분석 ID 반환
+    BE-->>FE: {success: true, analysisId}
+
+    FE->>User: 4. 결과 페이지로 이동
+    User->>FE: 결과 확인
+    FE->>BE: GET /api/ai/analysis/:id
+    BE->>DB: SELECT * FROM ai_analyses WHERE id = ?
+    DB-->>BE: 분석 결과 데이터
+    BE-->>FE: {analysis}
+    FE->>User: ✅ AI 분석 결과 표시<br/>(질환 예측, 차트, 권장사항)
+
+    Note over User,DB: ⚠️ Flask 서비스 다운 시<br/>Node.js에서 fallback 분석 수행
+```
+
+### 4️⃣ 게시판 게시글 작성 및 조회 흐름
+```mermaid
+sequenceDiagram
+    participant User as 👤 사용자
+    participant FE as 🌐 프론트엔드
+    participant BE as 🖥️ Node.js Backend
+    participant DB as 🗄️ PostgreSQL
+
+    Note over User,DB: 게시글 작성
+
+    User->>FE: 글쓰기 버튼 클릭
+    FE->>BE: POST /api/board/free/posts<br/>{category, title, content}<br/>Authorization: Bearer {token}
+    BE->>BE: JWT에서 userId 추출
+    BE->>DB: INSERT INTO posts<br/>(category, title, content, author_id)
+    DB-->>BE: 새 게시글 ID
+    BE-->>FE: {success: true, post}
+    FE->>User: ✅ 게시글 목록으로 이동
+
+    Note over User,DB: 게시글 조회
+
+    User->>FE: 게시글 클릭
+    FE->>BE: GET /api/board/free/posts/:id
+    BE->>DB: UPDATE posts SET views = views + 1 WHERE id = ?
+    BE->>DB: SELECT posts.*, COUNT(comments.id)<br/>FROM posts LEFT JOIN comments
+    DB-->>BE: 게시글 데이터 + 댓글 수
+    BE-->>FE: {success: true, post}
+    FE->>User: 게시글 상세 표시
+```
+
+## 프로젝트 디렉토리 구조
+
+### 전체 구조
+```
+SkinAI/
+├── frontend/                    # 🌐 프론트엔드 (Vanilla JS)
+│   └── src/
+│       ├── index.html           # 랜딩 페이지
+│       ├── script.js
+│       ├── login.html           # 로그인
+│       ├── signup.html          # 회원가입
+│       ├── signup.js
+│       ├── board.html           # 게시판 메인
+│       ├── board.js
+│       ├── post-detail.html     # 게시글 상세
+│       ├── post-detail.js
+│       ├── post-write.html      # 글쓰기/수정
+│       ├── post-write.js
+│       ├── profile.html         # 프로필 (4개 탭)
+│       ├── profile.js
+│       ├── ai-analysis.html     # AI 분석
+│       ├── ai-analysis.js
+│       ├── ai-result.html       # AI 결과 상세
+│       ├── ai-result.js
+│       ├── my-analyses.html     # AI 분석 기록
+│       ├── common-nav.js        # 공통 네비게이션
+│       └── style.css            # 전역 스타일
+│
+├── backend/                     # 🖥️ Node.js 백엔드
+│   ├── src/
+│   │   ├── server.js            # Express 서버 진입점
+│   │   ├── config/              # 설정 파일
+│   │   │   ├── database.js      # PostgreSQL 연결
+│   │   │   └── constants.js     # 상수 정의
+│   │   ├── models/              # 데이터 모델
+│   │   │   ├── user.js
+│   │   │   ├── post.js
+│   │   │   ├── comment.js
+│   │   │   └── analysis.js
+│   │   ├── middleware/          # 미들웨어
+│   │   │   ├── auth.js          # JWT 인증
+│   │   │   └── rateLimiter.js   # Rate limiting
+│   │   └── routes/              # API 라우터
+│   │       ├── auth.js          # /api/auth/*
+│   │       ├── board.js         # /api/board/*
+│   │       └── ai.js            # /api/ai/*
+│   ├── uploads/                 # 이미지 저장소
+│   ├── .env                     # 환경 변수 ⚠️ git 제외
+│   ├── package.json
+│   └── node_modules/
+│
+├── scin/                        # 🤖 AI 모델 시스템
+│   ├── api/                     # Flask AI 서비스
+│   │   ├── app.py               # Flask 서버 진입점
+│   │   ├── config.py            # AI 설정
+│   │   ├── inference.py         # 모델 추론
+│   │   ├── start.sh             # 개발 서버 시작
+│   │   ├── start_prod.sh        # 프로덕션 서버 시작
+│   │   ├── uploads/             # AI 분석용 이미지
+│   │   └── requirements.txt     # Python 의존성
+│   ├── model/                   # 딥러닝 모델
+│   │   ├── resnet50/            # ResNet50 모델
+│   │   │   ├── model.py
+│   │   │   ├── train.py
+│   │   │   └── evaluate.py
+│   │   └── efficientnet_b3/     # EfficientNet-B3 모델
+│   │       ├── model.py
+│   │       ├── train.py
+│   │       └── evaluate.py
+│   ├── data/                    # 데이터셋
+│   │   ├── download.py          # SCIN 데이터셋 다운로드
+│   │   ├── preprocess.py        # 데이터 전처리
+│   │   └── scin_processed/      # 전처리된 데이터
+│   ├── checkpoints/             # 학습된 모델 체크포인트
+│   │   └── checkpoint_best.pth  # 최적 모델
+│   └── logs/                    # 학습 로그
+│
+├── database/                    # 📊 데이터베이스 (추가 예정)
+│   ├── migrations/              # 스키마 마이그레이션
+│   ├── seeds/                   # 초기 데이터
+│   └── schema.sql               # PostgreSQL 스키마
+│
+├── README.md                    # 프로젝트 문서
+├── Architecture.md              # 시스템 아키텍처 (현재 파일)
+├── CLAUDE.md                    # Claude Code 가이드
+└── package.json                 # 루트 패키지 설정
+```
+
+### 주요 디렉토리 설명
+
+#### 🌐 `frontend/src/` - 프론트엔드
+- **정적 파일**: Express가 이 디렉토리를 정적으로 서빙
+- **Vanilla JavaScript**: 프레임워크 없이 순수 JS 사용
+- **공통 네비게이션**: `common-nav.js`로 모든 페이지 통합
+- **Local Storage**: JWT 토큰 및 사용자 정보 저장
+
+#### 🖥️ `backend/src/` - Node.js 백엔드
+- **server.js**: Express 서버 진입점, 포트 3000
+- **config/**: 데이터베이스 연결 및 상수 관리
+- **models/**: PostgreSQL 테이블과 매핑되는 데이터 모델
+- **middleware/**: JWT 인증, Rate limiting 등
+- **routes/**: RESTful API 엔드포인트 정의
+
+#### 🤖 `scin/` - AI 모델 시스템
+- **api/**: Flask 기반 AI 추론 서비스 (포트 5000)
+- **model/**: PyTorch 기반 딥러닝 모델 (ResNet50, EfficientNet)
+- **data/**: SCIN 데이터셋 다운로드 및 전처리 스크립트
+- **checkpoints/**: 학습된 모델 가중치 파일
+
+#### 📊 `database/` - 데이터베이스 관리 (추가 예정)
+- **migrations/**: 데이터베이스 스키마 버전 관리
+- **seeds/**: 초기 샘플 데이터
+- **schema.sql**: PostgreSQL 테이블 정의
 
 ## 기술 스택
 
@@ -459,6 +861,75 @@ sequenceDiagram
 - [ ] 성능 최적화 및 캐싱
 - [ ] 부하 테스트
 
+## 시스템 요약
+
+### 서비스 포트 및 URL
+
+| 서비스 | 포트 | URL | 설명 |
+|--------|------|-----|------|
+| **프론트엔드** | 3000 | http://localhost:3000 | Express 정적 파일 서빙 |
+| **Node.js Backend** | 3000 | http://localhost:3000/api/* | RESTful API |
+| **Flask AI Service** | 5000 | http://localhost:5000 | AI 추론 서비스 |
+| **PostgreSQL** | 5432 | localhost:5432 | 데이터베이스 |
+
+### 주요 기술 스택 요약
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  프론트엔드: Vanilla JavaScript + HTML5/CSS3                │
+├─────────────────────────────────────────────────────────────┤
+│  백엔드 API: Node.js + Express + JWT                        │
+├─────────────────────────────────────────────────────────────┤
+│  AI 서비스: Flask + PyTorch + ResNet50/EfficientNet         │
+├─────────────────────────────────────────────────────────────┤
+│  데이터베이스: PostgreSQL 14+                                │
+├─────────────────────────────────────────────────────────────┤
+│  보안: JWT + Bcrypt + Rate Limiting                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 데이터베이스 테이블 요약
+
+- **users** - 사용자 정보 (인증, 프로필)
+- **posts** - 게시글 (자유게시판, 질문, 정보공유)
+- **comments** - 댓글 (게시글에 대한 댓글)
+- **post_likes** - 게시글 좋아요 (다대다 관계)
+- **ai_analyses** - AI 분석 결과 (JSONB)
+- **survey_questions** - 동적 설문 질문 (JSONB)
+
+### 주요 데이터 흐름 요약
+
+1. **인증**: 사용자 → Frontend → Backend → PostgreSQL → JWT 발급
+2. **게시판**: 사용자 → Frontend → Backend (JWT 검증) → PostgreSQL
+3. **AI 분석**: 사용자 → Frontend → Backend → Flask AI → PyTorch → PostgreSQL
+
+### 보안 체계
+
+```mermaid
+graph LR
+    A[사용자 요청] --> B{JWT 검증}
+    B -->|유효| C[Rate Limit 검사]
+    B -->|무효| D[401 Unauthorized]
+    C -->|통과| E[입력값 검증]
+    C -->|초과| F[429 Too Many Requests]
+    E -->|성공| G[비즈니스 로직 실행]
+    E -->|실패| H[400 Bad Request]
+    G --> I[PostgreSQL]
+    I --> J[응답 반환]
+
+    style B fill:#FFE082,stroke:#F57C00
+    style C fill:#FFE082,stroke:#F57C00
+    style E fill:#FFE082,stroke:#F57C00
+    style I fill:#A5D6A7,stroke:#388E3C
+```
+
 ## 참고 문서
-- [README.md](./README.md): 프로젝트 전체 문서
-- [CLAUDE.md](./CLAUDE.md): Claude Code 가이드
+- [README.md](./README.md): 프로젝트 전체 문서 및 빠른 시작 가이드
+- [CLAUDE.md](./CLAUDE.md): Claude Code 개발 가이드 및 Clean Code 규칙
+- [SCIN_데이터_모델_분석_리포트.md](./SCIN_데이터_모델_분석_리포트.md): AI 모델 분석 리포트
+
+---
+
+**문서 버전**: 2.0
+**마지막 업데이트**: 2024-11-26
+**작성자**: SkinAI Development Team
