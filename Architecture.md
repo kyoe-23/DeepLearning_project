@@ -39,7 +39,7 @@ graph TB
         direction TB
         BROWSER["<b>웹 브라우저</b>"]
         FE["<b>프론트엔드</b><br/>HTML/CSS/Vanilla JS"]
-        STORAGE["<b>Local Storage</b><br/>JWT Token<br/>User Info"]
+        STORAGE["<b>PostgreSQL DB</b><br/>JWT Token<br/>User Info"]
         BROWSER --> FE
         FE <--> STORAGE
     end
