@@ -6,25 +6,25 @@ SkinAI는 **마이크로서비스 아키텍처** 기반의 피부 건강 관리 
 
 ### 핵심 특징
 
-#### 🏗️ 마이크로서비스 아키텍처
+#### 마이크로서비스 아키텍처
 - **Node.js Backend** (:3000) - 사용자 인증, 게시판, AI 분석 요청 관리
 - **Flask AI Service** (:5000) - PyTorch 모델 기반 피부 질환 예측
 - **PostgreSQL Database** (:5432) - 영속적인 데이터 저장
 - **독립적 배포 및 확장** - 각 서비스를 독립적으로 배포 가능
 
-#### 🔐 강력한 보안
+#### 강력한 보안
 - **JWT 인증** - 토큰 기반 무상태 인증
 - **Bcrypt 해싱** - 안전한 비밀번호 저장 (10 salt rounds)
 - **Rate Limiting** - API 남용 방지 (분당 100회 제한)
 - **입력 검증** - express-validator로 모든 입력값 검증
 
-#### 🤖 AI 피부 분석
+#### AI 피부 분석
 - **PyTorch 딥러닝** - ResNet50, EfficientNet-B3 모델
 - **50가지 피부 질환 분류** - SCIN 데이터셋 (10,407 이미지)
 - **Top-5 예측** - 신뢰도 점수와 함께 상위 5개 질환 예측
 - **Fallback 시스템** - Flask 서비스 다운 시 규칙 기반 분석 제공
 
-#### 💾 데이터 영속성
+#### 데이터 영속성
 - **PostgreSQL** - 관계형 데이터베이스로 데이터 안전 보관
 - **외래 키 제약조건** - CASCADE로 데이터 무결성 보장
 - **JSONB 타입** - AI 분석 결과 유연하게 저장
@@ -34,20 +34,20 @@ SkinAI는 **마이크로서비스 아키텍처** 기반의 피부 건강 관리 
 
 ### 전체 시스템 구조 (마이크로서비스 아키텍처)
 
-#### 📊 High-Level Architecture
+#### High-Level Architecture
 ```mermaid
 graph LR
-    USER["👤<br/><b>사용자</b><br/>웹 브라우저"]
+    USER["<b>사용자</b><br/>웹 브라우저"]
 
-    FE["🌐<br/><b>프론트엔드</b><br/>HTML/CSS/JS<br/>Local Storage"]
+    FE["<b>프론트엔드</b><br/>HTML/CSS/JS<br/>Local Storage"]
 
-    BACKEND["⚙️<br/><b>Node.js Backend</b><br/>Port 3000<br/>Express + JWT<br/>미들웨어"]
+    BACKEND["<b>Node.js Backend</b><br/>Port 3000<br/>Express + JWT<br/>미들웨어"]
 
-    AI["🤖<br/><b>Flask AI Service</b><br/>Port 5000<br/>PyTorch<br/>ResNet50"]
+    AI["<b>Flask AI Service</b><br/>Port 5000<br/>PyTorch<br/>ResNet50"]
 
-    DB["💾<br/><b>PostgreSQL</b><br/>Port 5432<br/>영속적 저장소"]
+    DB["<b>PostgreSQL</b><br/>Port 5432<br/>영속적 저장소"]
 
-    FS["📁<br/><b>File System</b><br/>이미지 저장소<br/>/uploads/"]
+    FS["<b>File System</b><br/>이미지 저장소<br/>/uploads/"]
 
     %% 데이터 흐름
     USER -->|HTTP/HTTPS| FE
@@ -58,11 +58,11 @@ graph LR
     AI -->|이미지 로드| FS
 
     %% 스타일
-    classDef userClass fill:#E3F2FD,stroke:#1565C0,stroke-width:4px,color:#000
-    classDef frontClass fill:#BBDEFB,stroke:#1976D2,stroke-width:4px,color:#000
-    classDef backClass fill:#FFE0B2,stroke:#EF6C00,stroke-width:4px,color:#000
-    classDef aiClass fill:#E1BEE7,stroke:#7B1FA2,stroke-width:4px,color:#000
-    classDef dataClass fill:#C8E6C9,stroke:#388E3C,stroke-width:4px,color:#000
+    classDef userClass fill:#42A5F5,stroke:#0D47A1,stroke-width:4px,color:#000
+    classDef frontClass fill:#81D4FA,stroke:#01579B,stroke-width:4px,color:#000
+    classDef backClass fill:#FFB74D,stroke:#E65100,stroke-width:4px,color:#000
+    classDef aiClass fill:#CE93D8,stroke:#4A148C,stroke-width:4px,color:#000
+    classDef dataClass fill:#81C784,stroke:#1B5E20,stroke-width:4px,color:#000
 
     class USER userClass
     class FE frontClass
@@ -71,10 +71,10 @@ graph LR
     class DB,FS dataClass
 ```
 
-#### 🔍 Detailed System Components
+#### Detailed System Components
 ```mermaid
 graph TB
-    subgraph LAYER1["📱 Presentation Layer"]
+    subgraph LAYER1["Presentation Layer"]
         direction LR
         UI1["로그인/회원가입"]
         UI2["게시판 CRUD"]
@@ -82,28 +82,28 @@ graph TB
         UI4["프로필 관리"]
     end
 
-    subgraph LAYER2["🔐 Security Layer"]
+    subgraph LAYER2["Security Layer"]
         direction LR
         SEC1["JWT 인증"]
         SEC2["Rate Limiting"]
         SEC3["입력값 검증"]
     end
 
-    subgraph LAYER3["⚙️ Application Layer"]
+    subgraph LAYER3["Application Layer"]
         direction LR
         APP1["인증 API<br/>/api/auth"]
         APP2["게시판 API<br/>/api/board"]
         APP3["AI API<br/>/api/ai"]
     end
 
-    subgraph LAYER4["🤖 AI Service Layer"]
+    subgraph LAYER4["AI Service Layer"]
         direction LR
         AI1["Flask API<br/>:5000"]
         AI2["PyTorch 모델<br/>ResNet50"]
         AI3["추론 엔진<br/>Top-5 예측"]
     end
 
-    subgraph LAYER5["💾 Data Layer"]
+    subgraph LAYER5["Data Layer"]
         direction LR
         DATA1["PostgreSQL<br/>users, posts<br/>comments"]
         DATA2["File System<br/>이미지 저장"]
@@ -115,11 +115,11 @@ graph TB
     LAYER3 --> LAYER5
     LAYER4 --> LAYER5
 
-    style LAYER1 fill:#E3F2FD,stroke:#1976D2,stroke-width:3px
-    style LAYER2 fill:#FFF9C4,stroke:#F57C00,stroke-width:3px
-    style LAYER3 fill:#FFE0B2,stroke:#EF6C00,stroke-width:3px
-    style LAYER4 fill:#E1BEE7,stroke:#7B1FA2,stroke-width:3px
-    style LAYER5 fill:#C8E6C9,stroke:#388E3C,stroke-width:3px
+    style LAYER1 fill:#42A5F5,stroke:#0D47A1,stroke-width:3px,color:#000
+    style LAYER2 fill:#FFF176,stroke:#F57F17,stroke-width:3px,color:#000
+    style LAYER3 fill:#FFB74D,stroke:#E65100,stroke-width:3px,color:#000
+    style LAYER4 fill:#CE93D8,stroke:#4A148C,stroke-width:3px,color:#000
+    style LAYER5 fill:#81C784,stroke:#1B5E20,stroke-width:3px,color:#000
 ```
 
 ### 시스템 레이어 구조
@@ -157,19 +157,19 @@ graph LR
     API --> FS
     AI --> FS
 
-    style UI fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
-    style API fill:#FFE0B2,stroke:#F57C00,stroke-width:2px
-    style AI fill:#E1BEE7,stroke:#6A1B9A,stroke-width:2px
-    style AUTH fill:#FFF9C4,stroke:#F9A825,stroke-width:2px
-    style BOARD fill:#FFF9C4,stroke:#F9A825,stroke-width:2px
-    style ANALYSIS fill:#FFF9C4,stroke:#F9A825,stroke-width:2px
-    style DB fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
-    style FS fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    style UI fill:#42A5F5,stroke:#01579B,stroke-width:2px
+    style API fill:#FFB74D,color:#000,stroke:#EF6C00,stroke-width:2px
+    style AI fill:#CE93D8,stroke:#4A148C,stroke-width:2px
+    style AUTH fill:#FFF176,color:#000,stroke:#F57F17,stroke-width:2px
+    style BOARD fill:#FFF176,stroke:#F57F17,stroke-width:2px
+    style ANALYSIS fill:#FFF176,color:#000,stroke:#F57F17,stroke-width:2px
+    style DB fill:#81C784,stroke:#1B5E20,stroke-width:2px
+    style FS fill:#81C784,color:#000,stroke:#1B5E20,stroke-width:2px
 ```
 
 ### 상세 계층 구조
 
-#### 1️⃣ 클라이언트 계층
+#### 1. 클라이언트 계층
 ```mermaid
 graph TB
     subgraph PAGES["프론트엔드 페이지"]
@@ -186,16 +186,16 @@ graph TB
     NAV --> PAGES
     PAGES --> STORAGE
 
-    style PAGES fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#000
-    style AUTH fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000
-    style BOARD fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000
-    style AI fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000
-    style PROFILE fill:#BBDEFB,stroke:#1976D2,stroke-width:2px,color:#000
-    style NAV fill:#90CAF9,stroke:#1976D2,stroke-width:2px,color:#000
-    style STORAGE fill:#64B5F6,stroke:#1976D2,stroke-width:2px,color:#000
+    style PAGES fill:#42A5F5,stroke:#01579B,stroke-width:2px,color:#000
+    style AUTH fill:#81D4FA,stroke:#01579B,stroke-width:2px,color:#000
+    style BOARD fill:#81D4FA,stroke:#01579B,stroke-width:2px,color:#000
+    style AI fill:#81D4FA,stroke:#01579B,stroke-width:2px,color:#000
+    style PROFILE fill:#81D4FA,stroke:#01579B,stroke-width:2px,color:#000
+    style NAV fill:#42A5F5,stroke:#01579B,stroke-width:2px,color:#000
+    style STORAGE fill:#42A5F5,stroke:#01579B,stroke-width:2px,color:#000
 ```
 
-#### 2️⃣ 서버 계층
+#### 2. 서버 계층
 ```mermaid
 graph TB
     subgraph MW["미들웨어"]
@@ -221,22 +221,22 @@ graph TB
 
     MW --> API --> LOGIC
 
-    style MW fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
-    style API fill:#FFE0B2,stroke:#F57C00,stroke-width:2px,color:#000
-    style LOGIC fill:#FFCC80,stroke:#F57C00,stroke-width:2px,color:#000
+    style MW fill:#FFE0B2,stroke:#EF6C00,stroke-width:2px,color:#000
+    style API fill:#FFB74D,stroke:#EF6C00,stroke-width:2px,color:#000
+    style LOGIC fill:#FFB74D,stroke:#EF6C00,stroke-width:2px,color:#000
     
-    style AUTH_MW fill:#FFE082,stroke:#F57C00,stroke-width:2px,color:#000
-    style RATE fill:#FFE082,stroke:#F57C00,stroke-width:2px,color:#000
-    style VALID fill:#FFE082,stroke:#F57C00,stroke-width:2px,color:#000
-    style AUTH_API fill:#FFCA28,stroke:#F57C00,stroke-width:2px,color:#000
-    style BOARD_API fill:#FFCA28,stroke:#F57C00,stroke-width:2px,color:#000
-    style AI_API fill:#FFCA28,stroke:#F57C00,stroke-width:2px,color:#000
-    style USER_LOGIC fill:#FFB300,stroke:#F57C00,stroke-width:2px,color:#000
-    style BOARD_LOGIC fill:#FFB300,stroke:#F57C00,stroke-width:2px,color:#000
-    style AI_LOGIC fill:#FFB300,stroke:#F57C00,stroke-width:2px,color:#000
+    style AUTH_MW fill:#FFD54F,stroke:#EF6C00,stroke-width:2px,color:#000
+    style RATE fill:#FFD54F,stroke:#EF6C00,stroke-width:2px,color:#000
+    style VALID fill:#FFD54F,stroke:#EF6C00,stroke-width:2px,color:#000
+    style AUTH_API fill:#FFA000,stroke:#EF6C00,stroke-width:2px,color:#000
+    style BOARD_API fill:#FFA000,stroke:#EF6C00,stroke-width:2px,color:#000
+    style AI_API fill:#FFA000,stroke:#EF6C00,stroke-width:2px,color:#000
+    style USER_LOGIC fill:#FFA000,stroke:#EF6C00,stroke-width:2px,color:#000
+    style BOARD_LOGIC fill:#FFA000,stroke:#EF6C00,stroke-width:2px,color:#000
+    style AI_LOGIC fill:#FFA000,stroke:#EF6C00,stroke-width:2px,color:#000
 ```
 
-#### 3️⃣ 데이터 계층
+#### 3. 데이터 계층
 
 **데이터베이스 ER 다이어그램**
 ```mermaid
@@ -312,7 +312,7 @@ graph TB
     subgraph STORAGE["데이터 저장소"]
         direction TB
         POSTGRES["<b>PostgreSQL</b><br/>데이터 영속성 확보<br/>포트: 5432"]
-        FILES["<b>파일 시스템</b><br/>📁 /backend/uploads/<br/>📁 /scin/api/uploads/"]
+        FILES["<b>파일 시스템</b><br/> /backend/uploads/<br/> /scin/api/uploads/"]
     end
 
     subgraph TABLES["PostgreSQL 테이블"]
@@ -328,33 +328,33 @@ graph TB
     TABLES --> POSTGRES
     FILES -.->|"이미지 저장"| ANALYSES
 
-    style STORAGE fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
-    style TABLES fill:#C8E6C9,stroke:#388E3C,stroke-width:2px,color:#000
-    style POSTGRES fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
-    style FILES fill:#A5D6A7,stroke:#388E3C,stroke-width:2px,color:#000
-    style USERS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
-    style POSTS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
-    style COMMENTS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
-    style ANALYSES fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
-    style SURVEYS fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
-    style LIKES fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#000
+    style STORAGE fill:#C8E6C9,stroke:#1B5E20,stroke-width:2px,color:#000
+    style TABLES fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
+    style POSTGRES fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
+    style FILES fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
+    style USERS fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
+    style POSTS fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
+    style COMMENTS fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
+    style ANALYSES fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
+    style SURVEYS fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
+    style LIKES fill:#81C784,stroke:#1B5E20,stroke-width:2px,color:#000
 ```
 
-#### 4️⃣ 보안 계층
+#### 4. 보안 계층
 ```mermaid
 graph LR
     JWT["<b>JWT</b><br/>토큰 생성/검증<br/>만료시간: 24h"]
     BCRYPT["<b>Bcrypt</b><br/>비밀번호 해싱<br/>10 salt rounds"]
     MULTER["<b>Multer</b><br/>파일 업로드<br/>최대 5MB"]
 
-    style JWT fill:#FFCDD2,stroke:#C62828,stroke-width:2px,color:#000
-    style BCRYPT fill:#FFCDD2,stroke:#C62828,stroke-width:2px,color:#000
-    style MULTER fill:#FFCDD2,stroke:#C62828,stroke-width:2px,color:#000
+    style JWT fill:#EF9A9A,stroke:#B71C1C,stroke-width:2px,color:#000
+    style BCRYPT fill:#EF9A9A,stroke:#B71C1C,stroke-width:2px,color:#000
+    style MULTER fill:#EF9A9A,stroke:#B71C1C,stroke-width:2px,color:#000
 ```
 
 ## 주요 컴포넌트 설명
 
-### 1. 클라이언트 계층 🎨
+### 1. 클라이언트 계층 
 
 #### 프론트엔드 페이지
 - **랜딩 페이지** (`index.html`): 서비스 소개 및 Hero 섹션
@@ -367,7 +367,7 @@ graph LR
 - **공통 네비게이션** (`common-nav.js`): 모든 페이지 통합 네비게이션
 - **Local Storage**: JWT 토큰 및 사용자 정보 저장
 
-### 2. 서버 계층 ⚙️
+### 2. 서버 계층 
 
 #### Express 서버 (포트 3000)
 Node.js 기반의 백엔드 서버로 모든 API 요청을 처리합니다.
@@ -386,40 +386,40 @@ Node.js 기반의 백엔드 서버로 모든 API 요청을 처리합니다.
 
 | Method | Endpoint | 인증 필요 | 설명 |
 |--------|----------|---------|------|
-| POST | `/signup` | ❌ | 회원가입 |
-| POST | `/login` | ❌ | 로그인 |
-| POST | `/logout` | ❌ | 로그아웃 (클라이언트 처리) |
-| GET | `/profile` | ✅ | 프로필 조회 |
-| PUT | `/profile` | ✅ | 프로필 수정 (이름, 비밀번호) |
-| DELETE | `/delete` | ✅ | 회원탈퇴 |
-| GET | `/my-posts` | ✅ | 내가 쓴 글 목록 |
-| GET | `/my-comments` | ✅ | 내가 쓴 댓글 목록 |
+| POST | `/signup` |  | 회원가입 |
+| POST | `/login` |  | 로그인 |
+| POST | `/logout` |  | 로그아웃 (클라이언트 처리) |
+| GET | `/profile` |  | 프로필 조회 |
+| PUT | `/profile` |  | 프로필 수정 (이름, 비밀번호) |
+| DELETE | `/delete` |  | 회원탈퇴 |
+| GET | `/my-posts` |  | 내가 쓴 글 목록 |
+| GET | `/my-comments` |  | 내가 쓴 댓글 목록 |
 
 **2. 게시판 API** (`/api/board/free/*`)
 
 | Method | Endpoint | 인증 필요 | 설명 |
 |--------|----------|---------|------|
-| GET | `/posts` | ❌ | 게시글 목록 조회 (검색, 카테고리 필터링) |
-| POST | `/posts` | ✅ | 게시글 작성 |
-| GET | `/posts/:id` | ❌ | 게시글 상세 조회 (조회수 증가) |
-| PUT | `/posts/:id` | ✅ | 게시글 수정 (작성자 확인) |
-| DELETE | `/posts/:id` | ✅ | 게시글 삭제 (작성자 확인) |
-| POST | `/posts/:id/like` | ✅ | 게시글 좋아요 (중복 방지) |
-| POST | `/posts/:id/comments` | ✅ | 댓글 작성 |
-| DELETE | `/posts/:postId/comments/:commentId` | ✅ | 댓글 삭제 (작성자 확인) |
+| GET | `/posts` |  | 게시글 목록 조회 (검색, 카테고리 필터링) |
+| POST | `/posts` |  | 게시글 작성 |
+| GET | `/posts/:id` |  | 게시글 상세 조회 (조회수 증가) |
+| PUT | `/posts/:id` |  | 게시글 수정 (작성자 확인) |
+| DELETE | `/posts/:id` |  | 게시글 삭제 (작성자 확인) |
+| POST | `/posts/:id/like` |  | 게시글 좋아요 (중복 방지) |
+| POST | `/posts/:id/comments` |  | 댓글 작성 |
+| DELETE | `/posts/:postId/comments/:commentId` |  | 댓글 삭제 (작성자 확인) |
 
 **3. AI 분석 API** (`/api/ai/*`)
 
 | Method | Endpoint | 인증 필요 | 설명 |
 |--------|----------|---------|------|
-| POST | `/image-upload` | ✅ | 이미지 업로드 (5MB, JPG/PNG) |
-| GET | `/survey/questions` | ❌ | 설문 질문 목록 조회 |
-| POST | `/survey/questions` | ✅ | 설문 질문 추가 (관리자) |
-| PUT | `/survey/questions/:id` | ✅ | 설문 질문 수정 (관리자) |
-| DELETE | `/survey/questions/:id` | ✅ | 설문 질문 삭제 (관리자) |
-| POST | `/survey` | ✅ | 설문 제출 및 AI 분석 요청 |
-| GET | `/analysis/:id` | ✅ | AI 분석 결과 조회 (본인만) |
-| GET | `/my-analyses` | ✅ | 내 AI 분석 기록 목록 |
+| POST | `/image-upload` |  | 이미지 업로드 (5MB, JPG/PNG) |
+| GET | `/survey/questions` |  | 설문 질문 목록 조회 |
+| POST | `/survey/questions` |  | 설문 질문 추가 (관리자) |
+| PUT | `/survey/questions/:id` |  | 설문 질문 수정 (관리자) |
+| DELETE | `/survey/questions/:id` |  | 설문 질문 삭제 (관리자) |
+| POST | `/survey` |  | 설문 제출 및 AI 분석 요청 |
+| GET | `/analysis/:id` |  | AI 분석 결과 조회 (본인만) |
+| GET | `/my-analyses` |  | 내 AI 분석 기록 목록 |
 
 **4. Flask AI 서비스 API** (`:5000`)
 
@@ -428,10 +428,10 @@ Node.js 기반의 백엔드 서버로 모든 API 요청을 처리합니다.
 | POST | `/predict` | 이미지 분석 (Top-5 질환 예측) |
 | GET | `/health` | 서비스 상태 확인 |
 
-### 3. 데이터 계층 💾
+### 3. 데이터 계층 
 
 #### PostgreSQL 데이터베이스
-✅ **데이터 영속성 확보**: PostgreSQL을 사용하여 모든 데이터가 안전하게 저장되며, 서버 재시작 후에도 유지됩니다.
+ **데이터 영속성 확보**: PostgreSQL을 사용하여 모든 데이터가 안전하게 저장되며, 서버 재시작 후에도 유지됩니다.
 
 #### 데이터베이스 테이블 스키마
 
@@ -515,7 +515,7 @@ CREATE TABLE post_likes (
 - 업로드된 이미지는 `/backend/uploads/` 디렉토리에 로컬 저장
 - 향후 AWS S3 또는 Cloudinary와 같은 클라우드 스토리지로 마이그레이션 예정
 
-### 4. 보안 계층 🔒
+### 4. 보안 계층 
 
 - **JWT**: JSON Web Token 기반 인증 (만료시간: 24시간)
 - **Bcrypt**: 비밀번호 해싱 (10 salt rounds)
@@ -523,7 +523,7 @@ CREATE TABLE post_likes (
 
 ## 주요 데이터 흐름
 
-### 1️⃣ 인증 흐름
+### 1. 인증 흐름
 ```mermaid
 sequenceDiagram
     participant User as 사용자
@@ -551,7 +551,7 @@ sequenceDiagram
     FE->>User: 게시판으로 리다이렉트
 ```
 
-### 2️⃣ 인증이 필요한 API 호출 흐름
+### 2. 인증이 필요한 API 호출 흐름
 ```mermaid
 sequenceDiagram
     participant User as 사용자
@@ -582,7 +582,7 @@ sequenceDiagram
     end
 ```
 
-### 3️⃣ AI 피부 분석 흐름 (마이크로서비스 통신)
+### 3. AI 피부 분석 흐름 (마이크로서비스 통신)
 ```mermaid
 sequenceDiagram
     participant User as 사용자
@@ -637,10 +637,10 @@ sequenceDiagram
     BE-->>FE: {analysis}
     FE->>User: AI 분석 결과 표시<br/>(질환 예측, 차트, 권장사항)
 
-    Note over User,DB: ⚠️ Flask 서비스 다운 시<br/>Node.js에서 fallback 분석 수행
+    Note over User,DB:  Flask 서비스 다운 시<br/>Node.js에서 fallback 분석 수행
 ```
 
-### 4️⃣ 게시판 게시글 작성 및 조회 흐름
+### 4. 게시판 게시글 작성 및 조회 흐름
 ```mermaid
 sequenceDiagram
     participant User as 사용자
@@ -674,7 +674,7 @@ sequenceDiagram
 ### 전체 구조
 ```
 SkinAI/
-├── frontend/                    # 🌐 프론트엔드 (Vanilla JS)
+├── frontend/                    #  프론트엔드 (Vanilla JS)
 │   └── src/
 │       ├── index.html           # 랜딩 페이지
 │       ├── script.js
@@ -697,7 +697,7 @@ SkinAI/
 │       ├── common-nav.js        # 공통 네비게이션
 │       └── style.css            # 전역 스타일
 │
-├── backend/                     # 🖥️ Node.js 백엔드
+├── backend/                     #  Node.js 백엔드
 │   ├── src/
 │   │   ├── server.js            # Express 서버 진입점
 │   │   ├── config/              # 설정 파일
@@ -716,11 +716,11 @@ SkinAI/
 │   │       ├── board.js         # /api/board/*
 │   │       └── ai.js            # /api/ai/*
 │   ├── uploads/                 # 이미지 저장소
-│   ├── .env                     # 환경 변수 ⚠️ git 제외
+│   ├── .env                     # 환경 변수  git 제외
 │   ├── package.json
 │   └── node_modules/
 │
-├── scin/                        # 🤖 AI 모델 시스템
+├── scin/                        #  AI 모델 시스템
 │   ├── api/                     # Flask AI 서비스
 │   │   ├── app.py               # Flask 서버 진입점
 │   │   ├── config.py            # AI 설정
@@ -746,7 +746,7 @@ SkinAI/
 │   │   └── checkpoint_best.pth  # 최적 모델
 │   └── logs/                    # 학습 로그
 │
-├── database/                    # 📊 데이터베이스 (추가 예정)
+├── database/                    #  데이터베이스 (추가 예정)
 │   ├── migrations/              # 스키마 마이그레이션
 │   ├── seeds/                   # 초기 데이터
 │   └── schema.sql               # PostgreSQL 스키마
@@ -759,26 +759,26 @@ SkinAI/
 
 ### 주요 디렉토리 설명
 
-#### 🌐 `frontend/src/` - 프론트엔드
+#### `frontend/src/` - 프론트엔드
 - **정적 파일**: Express가 이 디렉토리를 정적으로 서빙
 - **Vanilla JavaScript**: 프레임워크 없이 순수 JS 사용
 - **공통 네비게이션**: `common-nav.js`로 모든 페이지 통합
 - **Local Storage**: JWT 토큰 및 사용자 정보 저장
 
-#### 🖥️ `backend/src/` - Node.js 백엔드
+#### `backend/src/` - Node.js 백엔드
 - **server.js**: Express 서버 진입점, 포트 3000
 - **config/**: 데이터베이스 연결 및 상수 관리
 - **models/**: PostgreSQL 테이블과 매핑되는 데이터 모델
 - **middleware/**: JWT 인증, Rate limiting 등
 - **routes/**: RESTful API 엔드포인트 정의
 
-#### 🤖 `scin/` - AI 모델 시스템
+#### `scin/` - AI 모델 시스템
 - **api/**: Flask 기반 AI 추론 서비스 (포트 5000)
 - **model/**: PyTorch 기반 딥러닝 모델 (ResNet50, EfficientNet)
 - **data/**: SCIN 데이터셋 다운로드 및 전처리 스크립트
 - **checkpoints/**: 학습된 모델 가중치 파일
 
-#### 📊 `database/` - 데이터베이스 관리 (추가 예정)
+#### `database/` - 데이터베이스 관리 (추가 예정)
 - **migrations/**: 데이터베이스 스키마 버전 관리
 - **seeds/**: 초기 샘플 데이터
 - **schema.sql**: PostgreSQL 테이블 정의
@@ -813,7 +813,7 @@ SkinAI/
 
 ## 보안 기능
 
-### 구현됨 ✅
+### 구현됨 
 - JWT 인증 미들웨어
 - 모든 Board API 및 AI API 인증 적용
 - Rate Limiting (API 남용 방지)
@@ -823,7 +823,7 @@ SkinAI/
 - 에러 메시지 일반화
 - 파일 업로드 제한 (5MB, JPG/PNG)
 
-### 미구현 ⚠️
+### 미구현 
 - CORS 설정
 - HTTPS 지원
 - 파일 업로드 악성코드 검사
@@ -852,26 +852,26 @@ SkinAI/
 
 ## 개선 로드맵
 
-### Phase 1: 보안 강화 ✅ 완료
+### Phase 1: 보안 강화  완료
 - [x] JWT 인증 미들웨어 구현
 - [x] 모든 API 인증 적용
 - [x] Rate limiting 추가
 
-### Phase 2: UI/UX 개선 ✅ 완료
+### Phase 2: UI/UX 개선  완료
 - [x] 현대적인 랜딩 페이지
 - [x] 통합 네비게이션 시스템
 - [x] 프로필 페이지 탭 시스템
 - [x] 게시판 카테고리 시스템
 - [x] 반응형 디자인
 
-### Phase 3: AI 모델 통합 ✅ 완료
+### Phase 3: AI 모델 통합  완료
 - [x] 이미지 업로드
 - [x] AI 피부 분석 시스템
 - [x] Flask AI 서비스 마이크로서비스 아키텍처
 - [x] PyTorch 기반 ResNet50/EfficientNet-B3 모델 통합
 - [x] 50가지 피부 질환 분류 시스템
 
-### Phase 4: 데이터베이스 연동 🚧 진행 중
+### Phase 4: 데이터베이스 연동  진행 중
 - [x] PostgreSQL 연동
 - [x] 데이터 영속성 확보
 - [ ] 데이터베이스 스키마 마이그레이션
@@ -949,10 +949,10 @@ graph LR
     G --> I[PostgreSQL]
     I --> J[응답 반환]
 
-    style B fill:#FFE082,stroke:#F57C00
-    style C fill:#FFE082,stroke:#F57C00
-    style E fill:#FFE082,stroke:#F57C00
-    style I fill:#A5D6A7,stroke:#388E3C
+    style B fill:#FFD54F,stroke:#EF6C00
+    style C fill:#FFD54F,stroke:#EF6C00
+    style E fill:#FFD54F,stroke:#EF6C00
+    style I fill:#81C784,stroke:#1B5E20
 ```
 
 ## 참고 문서
