@@ -20,7 +20,7 @@ PyTorch 기반 딥러닝 모델을 활용한 피부 질환 분석 웹 서비스�
 ### AI 서비스
 - Python 3.8+ + Flask
 - PyTorch 2.0+
-- ResNet50/EfficientNet-B3
+- ResNet50
 
 ### 프론트엔드
 - Vanilla JavaScript
