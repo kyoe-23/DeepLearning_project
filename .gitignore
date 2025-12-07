@@ -38,9 +38,8 @@ scin/data/scin_dataset/
 scin/data/scin_processed/
 
 # 학습 결과물 (체크포인트, 로그, 평가 결과)
-scin/checkpoints/
+scin/checkpoints_old/
 scin/checkpoints_balanced/
-scin/archive/
 scin/model/resnet50/evaluation_results_old/
 scin/model/resnet50/logs_balanced/
 
