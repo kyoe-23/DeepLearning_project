@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 API_DIR = Path(__file__).resolve().parent
 
 # 모델 설정
-MODEL_CHECKPOINT_PATH = BASE_DIR / 'checkpoints' / 'checkpoint_best.pth'
+MODEL_CHECKPOINT_PATH = BASE_DIR / 'checkpoints_balanced' / 'checkpoint_best.pth'
 MODEL_TYPE = 'resnet50'  # ResNet50만 지원
 NUM_CLASSES = 50
 

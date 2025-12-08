@@ -33,7 +33,7 @@ else
 fi
 
 # 체크포인트 파일 존재 확인
-CHECKPOINT_PATH="../checkpoints/checkpoint_best.pth"
+CHECKPOINT_PATH="../checkpoints_balanced/checkpoint_best.pth"
 if [ ! -f "$CHECKPOINT_PATH" ]; then
     echo ""
     echo "[ERROR] 모델 체크포인트 파일이 없습니다:"
